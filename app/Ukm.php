@@ -15,4 +15,9 @@ class Ukm extends Model
     {
         return $this->belongsTo(User::class, 'users_id', 'id');
     }
+
+    public function anggota()
+    {
+        return $this->hasMany(AnggotaUkm::class, 'ukms_id', 'id');
+    }
 }

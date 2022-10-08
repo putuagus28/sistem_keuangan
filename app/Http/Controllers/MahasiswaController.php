@@ -69,22 +69,39 @@ class MahasiswaController extends Controller
             // 'jabatan' => $request->jabatan,
             'users_global' => $request->users_global,
         ])->exists();
-        $q2 = AnggotaUkm::where([
-            'ukms_id' => $request->ukms_id,
-            'jabatan' => $request->jabatan,
-        ])->exists();
-        if ($q) {
-            return response()->json(['status' => false, 'message' => 'Mahasiswa sudah memilih ukm!']);
-        } else if ($q2) {
-            return response()->json(['status' => false, 'message' => 'Jabatan pada UKM sudah terisi oleh mahasiswa lain!']);
-        } else {
-            $q1 = new AnggotaUkm;
-            $q1->ukms_id = $request->ukms_id;
-            $q1->jabatan = $request->jabatan;
-            $q1->users_global = $request->users_global;
-            $q1->users_id = auth()->user()->id;
-            $simpan = $q1->save();
-            return response()->json(['status' => $simpan, 'message' => 'Sukses']);
+        if($request->jabatan == 'ketua'){
+            $q2 = AnggotaUkm::where([
+                'ukms_id' => $request->ukms_id,
+                'jabatan' => 'ketua',
+            ])->exists();
+            if ($q) {
+                return response()->json(['status' => false, 'message' => 'Mahasiswa sudah memilih ukm!']);
+            } else if ($q2) {
+                return response()->json(['status' => false, 'message' => 'Jabatan pada UKM sudah terisi oleh mahasiswa lain!']);
+            } else {
+                $q1 = new AnggotaUkm;
+                $q1->ukms_id = $request->ukms_id;
+                $q1->jabatan = $request->jabatan;
+                $q1->users_global = $request->users_global;
+                $q1->users_id = auth()->user()->id;
+                $simpan = $q1->save();
+                return response()->json(['status' => $simpan, 'message' => 'Sukses']);
+            }
+        }else{
+            $q2 = AnggotaUkm::where('jabatan','bendahara')->count();
+            if ($q) {
+                return response()->json(['status' => false, 'message' => 'Mahasiswa sudah memilih ukm!']);
+            } else if ($q2 >=2) {
+                return response()->json(['status' => false, 'message' => 'Jabatan pada UKM sudah terisi oleh mahasiswa lain!']);
+            } else {
+                $q1 = new AnggotaUkm;
+                $q1->ukms_id = $request->ukms_id;
+                $q1->jabatan = $request->jabatan;
+                $q1->users_global = $request->users_global;
+                $q1->users_id = auth()->user()->id;
+                $simpan = $q1->save();
+                return response()->json(['status' => $simpan, 'message' => 'Sukses']);
+            }
         }
     }
 

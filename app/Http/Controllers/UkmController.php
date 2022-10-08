@@ -35,7 +35,7 @@ class UkmController extends Controller
             $cek_ukm = $ukm->where(['nama' => $request->nama]);
             if ($cek_ukm->exists()) {
                 return response()->json(['status' => false, 'message' => 'Ukm sudah ada!']);
-            }else{
+            } else {
                 $user = new Ukm;
                 $user->nama = $request->nama;
                 $user->users_id = auth()->user()->id;
@@ -49,7 +49,7 @@ class UkmController extends Controller
 
     public function edit(Request $request)
     {
-        $q = Ukm::find($request->id);
+        $q = Ukm::with('anggota.users')->where('id', $request->id)->first();
         return response()->json($q);
     }
 

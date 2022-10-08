@@ -52,7 +52,11 @@
                                     @endphp
                                 @else
                                     @php
-                                        $logo = 'users/' . $pembina->pembina->foto;
+                                        if (empty($pembina->pembina->foto)) {
+                                            $logo = 'assets/dist/img/avatar_blank.png';
+                                        } else {
+                                            $logo = 'users/' . $pembina->pembina->foto;
+                                        }
                                     @endphp
                                 @endif
                                 <img class="img-circle elevation-1 bg-white mr-4 mt-2" src="{{ asset($logo) }}"

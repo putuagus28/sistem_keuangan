@@ -88,6 +88,13 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div id="v_detail" class="mt-2 d-none">
+                            <p class="mb-0 font-weight-bold">Detail Kepengurusan :</p>
+                            <ul>
+                                <li>a</li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">Simpan</button>
@@ -112,6 +119,9 @@
     <!-- JQuery mask -->
     <script src="{{ asset('assets/plugins/jquery-mask/jquery.mask.min.js') }}"></script>
     <script>
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
         $(document).ready(function() {
             var role = "{{ auth()->user()->role }}";
             $.fn.modal.Constructor.prototype._enforceFocus = function() {};
@@ -166,6 +176,7 @@
                     .find("input[type=checkbox], input[type=radio]")
                     .prop("checked", "")
                     .end();
+                $('#modal #v_detail').addClass('d-none');
             });
 
             // modal show 
@@ -222,6 +233,7 @@
             table.on("click", "#edit", function(e) {
                 e.preventDefault();
                 var id = $(this).data('id');
+                $('#modal #v_detail').removeClass('d-none');
                 $('#modal').modal('show');
                 $('#modal').find('.modal-title').text('Form Edit');
                 $('#modal form').show().find('#id').val(id);
@@ -240,6 +252,35 @@
                     },
                     success: function(data) {
                         $('#modal form').find('#nama').val(data.nama);
+                        var html = '';
+                        var html2 = '';
+                        var html3 = '';
+                        var html4 = '';
+                        $.each(data.anggota, function(i, v) {
+                            if (v.jabatan == 'pembina') {
+                                html += '<li><strong>' + capitalizeFirstLetter(v
+                                        .jabatan) + ' </strong>: ' + v
+                                    .users.name +
+                                    '</li>';
+                            } else if (v.jabatan == 'ketua') {
+                                html2 += '<li><strong>' + capitalizeFirstLetter(v
+                                        .jabatan) + ' </strong>: ' + v
+                                    .users.name +
+                                    '</li>';
+                            } else if (v.jabatan == 'bendahara') {
+                                html3 += '<li><strong>' + capitalizeFirstLetter(v
+                                        .jabatan) + ' </strong>: ' + v
+                                    .users.name +
+                                    '</li>';
+                            } else {
+                                html4 += '<li><strong>' + capitalizeFirstLetter(v
+                                        .jabatan) + ' </strong>: ' + v
+                                    .users.name +
+                                    '</li>';
+                            }
+                        });
+                        var gabung = html + '' + html2 + '' + html3 + '' + html4;
+                        $('#modal #v_detail ul').html(gabung);
                     },
                     error: function(response) {
                         Swal.fire({
