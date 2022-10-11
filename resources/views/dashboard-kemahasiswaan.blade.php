@@ -63,7 +63,7 @@
                 <div class="col-12 col-sm-6 col-md-4">
                     <div class="small-box bg-danger">
                         <div class="inner">
-                            <h3>{{ $mhs }}</h3>
+                            <h3>{{ $pembina }}</h3>
                             <p>Total Pembina UKM</p>
                         </div>
                         <div class="icon">

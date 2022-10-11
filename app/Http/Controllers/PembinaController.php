@@ -16,7 +16,7 @@ class PembinaController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Pembina::all();
+            $data = Pembina::with('anggota.ukm')->get();
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('foto', function ($row) {
@@ -33,7 +33,15 @@ class PembinaController extends Controller
                     $btn .= '<a href="' . route('ukm.pembina', ['id' => $row->id]) . '" data-id="' . $row->id . '" class="btn btn-danger btn-sm mx-1" id="ukm"><i class="fa fa-plus" aria-hidden="true"></i> Ukm</a>';
                     return $btn;
                 })
-                ->rawColumns(['action', 'foto'])
+                ->addColumn('ukm', function ($row) {
+                    $ukm = [];
+                    foreach($row->anggota as $item){
+                        $ukm[] = '<span class="px-2 py-1 bg-dark">'.$item->ukm->nama.'</span>';
+                    }
+
+                    return implode(' ',$ukm);
+                })
+                ->rawColumns(['action', 'foto','ukm'])
                 ->make(true);
         }
         return view('pembina.index');
@@ -169,11 +177,17 @@ class PembinaController extends Controller
     {
         $q = AnggotaUkm::where([
             'ukms_id' => $request->ukms_id,
-            // 'jabatan' => $request->jabatan,
+            'jabatan' => $request->jabatan,
             'users_global' => $request->users_global,
         ])->exists();
+        $q2 = AnggotaUkm::where([
+            'ukms_id' => $request->ukms_id,
+            'jabatan' => $request->jabatan,
+        ])->exists();
         if ($q) {
-            return response()->json(['status' => false, 'message' => 'Pembina sudah memilih ukm!']);
+            return response()->json(['status' => false, 'message' => 'Pembina sudah memilih ukm ini!']);
+        }else if ($q2) {
+            return response()->json(['status' => false, 'message' => 'Ukm ini sudah memiliki pembina!']);
         } else {
             $q = new AnggotaUkm;
             $q->ukms_id = $request->ukms_id;

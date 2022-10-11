@@ -10,4 +10,9 @@ class Pembina extends Model
     use HasFactory;
     use \App\Traits\TraitUuid;
     protected $table = 'pembinas';
+
+    public function anggota()
+    {
+        return $this->hasMany(AnggotaUkm::class,'users_global','id');
+    }
 }

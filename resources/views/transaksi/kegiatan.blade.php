@@ -350,6 +350,16 @@
                                 img += '<img src="bukti/' + file[x] +
                                     '" class="img-fluid my-1 w-100" alt="">';
                             }
+                            var btn = '';
+                            if (i == 0) {
+                                btn +=
+                                    '<button class="btn btn-info btn-sm" id="add">' +
+                                    '<i class="fa fa-plus-circle" aria-hidden="true"></i>' +
+                                    '</button>';
+                            } else {
+                                btn +=
+                                    '';
+                            }
                             tb.append(
                                 '<tr>' +
                                 '<td class="py-1" width="100">' +
@@ -385,8 +395,7 @@
                                 '<td class="py-1">' +
                                 '<input type="text" readonly name="pengurus[]" id="pengurus" class="form-control" value="{{ auth()->user()->name }}">' +
                                 '</td>' +
-                                '<td class="py-1">' +
-                                '' +
+                                '<td class="py-1">' + btn +
                                 '</td>' +
                                 '</tr>');
 
@@ -497,6 +506,7 @@
                     '<tr>' +
                     '<td class="py-1" width="100">' +
                     '<input type="date" name="tanggal[]" id="tanggal" class="form-control">' +
+                    '<input type="hidden" name="id_detail[]" id="id_detail" class="form-control" value="">' +
                     '</td>' +
                     '<td class="py-1" width="200">' +
                     '<select name="status[]" id="status" class="form-control">' +

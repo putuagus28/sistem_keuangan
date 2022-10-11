@@ -57,6 +57,7 @@
                                         <th>NoKtp</th>
                                         <th width="100">Foto</th>
                                         <th>Alamat</th>
+                                        <th>List UKM</th>
                                         <th>Opsi</th>
                                     </tr>
                                 </thead>
@@ -199,6 +200,10 @@
                     {
                         data: 'alamat',
                         name: 'alamat'
+                    },
+                    {
+                        data: 'ukm',
+                        name: 'ukm'
                     },
                     {
                         data: 'action',

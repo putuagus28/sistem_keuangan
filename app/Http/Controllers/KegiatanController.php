@@ -115,6 +115,7 @@ class KegiatanController extends Controller
     public function update(Request $request)
     {
         try {
+            $id_k = $request->id;
             $k = Kegiatan::find($request->id);
             $k->tanggal = date('Y-m-d', strtotime($request->tgl));
             $k->nama_kegiatan = $request->nama_kegiatan;
@@ -123,37 +124,57 @@ class KegiatanController extends Controller
             $k->save();
 
             for ($i = 0; $i < count($request->tanggal); $i++) {
-                $fl_arr = [];
-
-                $d = DetailKegiatan::find($request->id_detail[$i]);
-                // jika user upload berkas;
-                if ($request->hasFile('bukti' . $i) && $request->status[$i] == "pengeluaran") {
-                    // delete file lama
-                    $dtl = DetailKegiatan::find($request->id_detail[$i]);
-                    $foto = $dtl->bukti;
-                    $foto = explode(',', $foto);
-                    foreach ($foto as $f) {
-                        if (!empty($f)) {
-                            $filePath = public_path('bukti/' . $f);
-                            if (file_exists($filePath)) {
-                                unlink($filePath);
-                            }
+                if (empty($request->id_detail[$i])) {
+                    $fl_arr = [];
+                    // jika user upload berkas;
+                    if ($request->hasFile('bukti' . $i)) {
+                        foreach ($request->file('bukti' . $i) as $image) {
+                            $extension = $image->getClientOriginalExtension();
+                            $fileName = rand(11111, 99999) . '.' . $extension;
+                            $fl_arr[] = $fileName;
+                            $image->move(public_path('bukti'), $fileName);
                         }
                     }
-                    // upload file baru
-                    foreach ($request->file('bukti' . $i) as $image) {
-                        $extension = $image->getClientOriginalExtension();
-                        $fileName = rand(11111, 99999) . '.' . $extension;
-                        $fl_arr[] = $fileName;
-                        $image->move(public_path('bukti'), $fileName);
-                    }
+                    $d = new DetailKegiatan;
+                    $d->tanggal = date('Y-m-d', strtotime($request->tanggal[$i]));
+                    $d->nominal = str_replace(['Rp', ' ', '.', ','], '', $request->nominal[$i]);
+                    $d->status = $request->status[$i];
+                    $d->keterangan = $request->keterangan[$i];
+                    $d->kegiatans_id = $id_k;
                     $d->bukti = implode(",", $fl_arr);
+                    $d->save();
+                } else {
+                    $fl_arr = [];
+                    $d = DetailKegiatan::find($request->id_detail[$i]);
+                    // jika user upload berkas;
+                    if ($request->hasFile('bukti' . $i) && $request->status[$i] == "pengeluaran") {
+                        // delete file lama
+                        $dtl = DetailKegiatan::find($request->id_detail[$i]);
+                        $foto = $dtl->bukti;
+                        $foto = explode(',', $foto);
+                        foreach ($foto as $f) {
+                            if (!empty($f)) {
+                                $filePath = public_path('bukti/' . $f);
+                                if (file_exists($filePath)) {
+                                    unlink($filePath);
+                                }
+                            }
+                        }
+                        // upload file baru
+                        foreach ($request->file('bukti' . $i) as $image) {
+                            $extension = $image->getClientOriginalExtension();
+                            $fileName = rand(11111, 99999) . '.' . $extension;
+                            $fl_arr[] = $fileName;
+                            $image->move(public_path('bukti'), $fileName);
+                        }
+                        $d->bukti = implode(",", $fl_arr);
+                    }
+                    $d->tanggal = date('Y-m-d', strtotime($request->tanggal[$i]));
+                    $d->nominal = str_replace(['Rp', ' ', '.', ','], '', $request->nominal[$i]);
+                    $d->status = $request->status[$i];
+                    $d->keterangan = $request->keterangan[$i];
+                    $d->save();
                 }
-                $d->tanggal = date('Y-m-d', strtotime($request->tanggal[$i]));
-                $d->nominal = str_replace(['Rp', ' ', '.', ','], '', $request->nominal[$i]);
-                $d->status = $request->status[$i];
-                $d->keterangan = $request->keterangan[$i];
-                $d->save();
             }
             return response()->json(['status' => true, 'message' => 'Sukses']);
         } catch (\Exception $err) {

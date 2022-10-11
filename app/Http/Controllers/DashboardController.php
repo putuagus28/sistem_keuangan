@@ -7,6 +7,7 @@ use App\Ukm;
 use App\AnggotaUkm;
 use App\Pemasukan;
 use App\Pembayaran;
+use App\Pembina;
 use App\Pengeluaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -60,6 +61,7 @@ class DashboardController extends Controller
                 'title' => 'Dashboard ' . ucwords(auth()->user()->role),
                 'ukm' => Ukm::all()->count(),
                 'mhs' => Mahasiswa::all()->count(),
+                'pembina' => Pembina::all()->count(),
             ];
             $page = $role;
         }
@@ -88,16 +90,16 @@ class DashboardController extends Controller
             ->where('metode', $metode)
             ->whereMonth('tanggal', date('m'))
             ->sum('nominal');
-        $q2 = Pembayaran::where('ukms_id', Session::get('ukms_id'))
-            ->where('metode', $metode)
-            ->whereMonth('tanggal', date('m'))
-            ->sum('nominal');
+        // $q2 = Pembayaran::where('ukms_id', Session::get('ukms_id'))
+        //     ->where('metode', $metode)
+        //     ->whereMonth('tanggal', date('m'))
+        //     ->sum('nominal');
         $q3 = Pengeluaran::where('ukms_id', Session::get('ukms_id'))
             ->where('metode', $metode)
             ->whereMonth('tanggal', date('m'))
             ->sum('nominal');
 
-        return $q1 + $q2 + $q3;
+        return $q1 - $q3;
     }
 
     public function pengeluaran()
