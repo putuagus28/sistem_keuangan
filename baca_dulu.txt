@@ -1,6 +1,3 @@
 Jalankan perintah : composer update  
 Silahkan minta file .env kepada saya 
 Jalankan perintah php artisan serve
-
- 
-asas
