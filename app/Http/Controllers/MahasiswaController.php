@@ -16,7 +16,7 @@ class MahasiswaController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Mahasiswa::all();
+            $data = Mahasiswa::with('anggota')->get();
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('foto', function ($row) {
@@ -26,6 +26,14 @@ class MahasiswaController extends Controller
                     }
                     return $img;
                 })
+                ->addColumn('ukm', function ($row) {
+                    $ukm = [];
+                    foreach ($row->anggota as $item) {
+                        $ukm[] = '<span class="px-2 py-1 bg-dark">' . $item->ukm->nama . '</span>';
+                    }
+
+                    return implode(' ', $ukm);
+                })
                 ->addColumn('action', function ($row) {
                     $btn = "";
                     $btn .= '<a href="javascript:void(0)" data-id="' . $row->id . '" class="btn btn-success btn-sm mx-1" id="edit"><i class="fas fa-edit"></i></a>';
@@ -33,7 +41,7 @@ class MahasiswaController extends Controller
                     $btn .= '<a href="' . route('ukm.mahasiswa', ['id' => $row->id]) . '" data-id="' . $row->id . '" class="btn btn-danger btn-sm mx-1" id="ukm"><i class="fa fa-plus" aria-hidden="true"></i> Ukm</a>';
                     return $btn;
                 })
-                ->rawColumns(['action', 'foto'])
+                ->rawColumns(['action', 'foto', 'ukm'])
                 ->make(true);
         }
         return view('mahasiswa.index');
@@ -69,7 +77,7 @@ class MahasiswaController extends Controller
             // 'jabatan' => $request->jabatan,
             'users_global' => $request->users_global,
         ])->exists();
-        if($request->jabatan == 'ketua'){
+        if ($request->jabatan == 'ketua') {
             $q2 = AnggotaUkm::where([
                 'ukms_id' => $request->ukms_id,
                 'jabatan' => 'ketua',
@@ -87,11 +95,30 @@ class MahasiswaController extends Controller
                 $simpan = $q1->save();
                 return response()->json(['status' => $simpan, 'message' => 'Sukses']);
             }
-        }else{
-            $q2 = AnggotaUkm::where('jabatan','bendahara')->count();
+        } else if ($request->jabatan == 'bendahara') {
+            $q2 = AnggotaUkm::where('jabatan', 'bendahara')
+            ->where('ukms_id',$request->ukms_id)
+            ->count();
             if ($q) {
                 return response()->json(['status' => false, 'message' => 'Mahasiswa sudah memilih ukm!']);
-            } else if ($q2 >=2) {
+            } else if ($q2 >= 2) {
+                return response()->json(['status' => false, 'message' => 'Jabatan pada UKM sudah terisi oleh mahasiswa lain!'.$q2]);
+            } else {
+                $q1 = new AnggotaUkm;
+                $q1->ukms_id = $request->ukms_id;
+                $q1->jabatan = $request->jabatan;
+                $q1->users_global = $request->users_global;
+                $q1->users_id = auth()->user()->id;
+                $simpan = $q1->save();
+                return response()->json(['status' => $simpan, 'message' => 'Sukses']);
+            }
+        } else if ($request->jabatan == 'sekretaris') {
+            $q2 = AnggotaUkm::where('jabatan', 'sekretaris')
+            ->where('ukms_id',$request->ukms_id)
+            ->count();
+            if ($q) {
+                return response()->json(['status' => false, 'message' => 'Mahasiswa sudah memilih ukm!']);
+            } else if ($q2 >= 2) {
                 return response()->json(['status' => false, 'message' => 'Jabatan pada UKM sudah terisi oleh mahasiswa lain!']);
             } else {
                 $q1 = new AnggotaUkm;

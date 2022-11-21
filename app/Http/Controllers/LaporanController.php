@@ -6,6 +6,8 @@ use App\Kegiatan;
 use App\Pemasukan;
 use App\Pengeluaran;
 use App\Ukm;
+use App\Jurnal;
+use App\Akun;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use PDF;
@@ -26,6 +28,12 @@ class LaporanController extends Controller
                 'ukm' => Ukm::all(),
             ];
             return view('laporan.aruskas', $data);
+        } elseif ($jenis == "jurnal") {
+            $data = [
+                'title' => 'Laporan ' . strtoupper($jenis) . " Umum",
+                'ukm' => Ukm::all(),
+            ];
+            return view('laporan.jurnal', $data);
         }
 
         return abort(404);
@@ -47,6 +55,18 @@ class LaporanController extends Controller
         } else if ($request->jenis == "aruskas") {
             $data = [
                 'query' => '',
+                'jenis' => $request->jenis
+            ];
+        } else if ($request->jenis == "jurnal") {
+            $periode = explode('/', $request->periode);
+            $query = Jurnal::with('akun')
+                ->select('*', DB::raw('DATE_FORMAT(tanggal, "%d-%m-%Y") as tanggal'))
+                ->whereYear('tanggal', '>=', $periode[0])
+                ->whereYear('tanggal', '<=', $periode[1])
+                ->orderBy('created_at', 'asc')
+                ->get();
+            $data = [
+                'query' => $query,
                 'jenis' => $request->jenis
             ];
         }
@@ -80,16 +100,26 @@ class LaporanController extends Controller
                 $ukm = Ukm::find(Session::get('ukms_id'));
                 $ukm_id = $ukm->id;
             }
-            $query1 = Pemasukan::select('*', DB::raw('DATE_FORMAT(tanggal, "%d-%m-%Y") as tanggal'))
+            $akun = Akun::where('ukms_id', Session::get('ukms_id'))
+                ->whereIn('nama_reff', ['Activa'])
+                ->orderBy('keterangan', 'asc')
+                ->get();
+            $akuns = [];
+            foreach ($akun as $a) {
+                $akuns[] = $a->id;
+            }
+            $query1 = Pemasukan::with('akun')->select('*', DB::raw('DATE_FORMAT(tanggal, "%d-%m-%Y") as tanggal'))
                 ->whereYear('tanggal', '>=', $periode[0])
                 ->whereYear('tanggal', '<=', $periode[1])
                 ->where('ukms_id', $ukm_id)
+                ->whereIn('akuns_id', $akuns)
                 ->orderBy('tanggal', 'desc')
                 ->get();
-            $query2 = Pengeluaran::select('*', DB::raw('DATE_FORMAT(tanggal, "%d-%m-%Y") as tanggal'))
+            $query2 = Pengeluaran::with('akun')->select('*', DB::raw('DATE_FORMAT(tanggal, "%d-%m-%Y") as tanggal'))
                 ->whereYear('tanggal', '>=', $periode[0])
                 ->whereYear('tanggal', '<=', $periode[1])
                 ->where('ukms_id', $ukm_id)
+                ->whereIn('akuns_id', $akuns)
                 ->orderBy('tanggal', 'desc')
                 ->get();
             $data = [

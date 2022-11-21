@@ -74,9 +74,19 @@
                                         <th>No</th>
                                         <th>Tanggal</th>
                                         <th>Nama Kegiatan</th>
+                                        <th>Total</th>
                                         <th>Opsi</th>
                                     </tr>
                                 </thead>
+                                <tfoot align="left" class="font-weight-bold">
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td>Sub Total</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     </div>
@@ -138,6 +148,15 @@
                             <tbody>
 
                             </tbody>
+                            <tfoot align="left" class="font-weight-bold">
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td>Total Pengeluaran</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </form>
@@ -191,6 +210,15 @@
                 }
             });
         }
+
+        /* Fungsi formatRupiah */
+        function formatRupiah(num) {
+            var p = num.toFixed(0).split(".");
+            return "Rp " + p[0].split("").reverse().reduce(function(acc, num, i, orig) {
+                return num + (num != "-" && i && !(i % 3) ? "." : "") + acc;
+            }, "");
+        }
+
         $(document).ready(function() {
             var row = 0;
             var role = "{{ auth()->user()->role }}";
@@ -239,12 +267,49 @@
                         name: 'nama_kegiatan'
                     },
                     {
+                        data: 'total',
+                        render: function(data, type, row, meta) {
+                            return formatRupiah(row.total);
+                        },
+                    },
+                    {
                         data: 'action',
                         name: 'action',
                         orderable: false,
                         searchable: false
                     },
                 ],
+                "footerCallback": function(row, data, start, end, display) {
+                    var api = this.api(),
+                        data;
+
+
+                    var numFormat = $.fn.dataTable.render.number('\.', ',', 0, 'Rp ').display;
+
+                    // converting to interger to find total
+                    var intVal = function(i) {
+                        return typeof i === 'string' ?
+                            i.replace(/[\/Rp\,/\.]/g, '') * 1 :
+                            typeof i === 'number' ?
+                            i : 0;
+                    };
+
+                    // computing column Total of the complete result 
+
+                    var total = api
+                        .column(3)
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    // Update footer by showing the total with the reference of the column index 
+                    $(api.column(0).footer()).html('');
+                    $(api.column(1).footer()).html('');
+                    $(api.column(2).footer()).html('Sub Total');
+                    $(api.column(3).footer()).html(numFormat(total));
+                    $(api.column(4).footer()).html('');
+                },
                 order: [
                     [1, "desc"]
                 ]
@@ -327,6 +392,7 @@
                 $('#modal').find('.modal-title').text('Edit Kegiatan UKM');
                 $('#modal form').show().find('#id').val(id);
                 $('#table2 tbody').html('');
+                $('#table2 th').eq(5).show();
                 $.ajax({
                     url: "{{ route('edit.kegiatan') }}",
                     type: "GET",
@@ -424,6 +490,7 @@
                 $('#modal form').show().find('#id').val(id);
                 $('#modal form').find('button[type="submit"]').attr('disabled', true).hide();
                 $('#table2 tbody').html('');
+                $('#table2 th').eq(5).hide();
                 $.ajax({
                     url: "{{ route('edit.kegiatan') }}",
                     type: "GET",
@@ -435,6 +502,7 @@
                     success: function(data) {
                         $('#modal form').find('#tgl').val(data.tanggal);
                         $('#modal form').find('#nama_kegiatan').val(data.nama_kegiatan);
+                        var subtotal = 0;
                         $.each(data.detail, function(i, v) {
                             var nominal = "Rp " + v.nominal.toString()
                                 .replace(/\D/g, "")
@@ -443,6 +511,10 @@
                             var img = "";
                             var bukti = v.bukti;
                             var file = bukti.split(",");
+
+                            if (v.status == "pengeluaran") {
+                                subtotal += parseInt(v.nominal);
+                            }
                             for (var x = 0; x < file.length; x++) {
                                 img += '<img src="bukti/' + file[x] +
                                     '" class="img-fluid my-1 w-100" alt="">';
@@ -456,16 +528,8 @@
                                 v.tanggal + '">' +
                                 '</td>' +
                                 '<td class="py-1" width="200">' +
-                                '<select name="status[]" id="status" class="form-control">' +
-                                '<option value="" disabled selected>Pilih</option>' +
-                                '<option value="pemasukan" ' + (v.status ==
-                                    "pemasukan" ? "selected" : "") +
-                                '>Pemasukan</option>' +
-                                '<option value="pengeluaran" ' + (v.status ==
-                                    "pengeluaran" ? "selected" : "") +
-                                '>Pengeluaran</option>' +
-                                '</select>' +
-                                img +
+                                '<input type="text" name="keterangan[]" id="keterangan" class="form-control" value="' +
+                                v.status + '">' +
                                 '</td>' +
                                 '<td class="py-1">' +
                                 '<input type="text" name="keterangan[]" id="keterangan" class="form-control" value="' +
@@ -478,13 +542,12 @@
                                 '<td class="py-1">' +
                                 '<input type="text" readonly name="pengurus[]" id="pengurus" class="form-control" value="{{ auth()->user()->name }}">' +
                                 '</td>' +
-                                '<td class="py-1">' +
-                                '' +
-                                '</td>' +
                                 '</tr>');
                             $('#modal form').find("input,textarea,select").attr(
                                 "disabled", true);
                         });
+
+                        $('#table2 tfoot tr td:eq(3)').text(formatRupiah(subtotal));
 
                     },
                     error: function(response) {

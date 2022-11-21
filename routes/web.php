@@ -27,6 +27,24 @@ Route::middleware(['auth:user', 'ceklevel:mahasiswa,pembina'])->group(function (
     Route::get('anggotaukm/edit', 'AnggotaController@edit')->name('edit.anggotaukm');
     Route::post('anggotaukm/update', 'AnggotaController@update')->name('update.anggotaukm');
     Route::get('anggotaukm/delete', 'AnggotaController@delete')->name('delete.anggotaukm');
+    /** akun akutansi */
+    Route::get('akun', 'AkunController@index')->name('akun');
+    Route::post('akun', 'AkunController@index')->name('json.akun');
+    Route::post('akun/insert', 'AkunController@insert')->name('insert.akun');
+    Route::get('akun/edit', 'AkunController@edit')->name('edit.akun');
+    Route::get('akun/delete', 'AkunController@delete')->name('delete.akun');
+    Route::post('akun/update', 'AkunController@update')->name('update.akun');
+    /** jurnal akutansi */
+    Route::get('jurnal', 'JurnalController@index')->name('jurnal');
+    Route::get('get/akun', 'JurnalController@getAkun')->name('getakun');
+    Route::post('jurnal', 'JurnalController@index')->name('json.jurnal');
+    Route::post('jurnal/insert', 'JurnalController@insert')->name('insert.jurnal');
+    Route::get('jurnal/edit', 'JurnalController@edit')->name('edit.jurnal');
+    Route::get('jurnal/delete', 'JurnalController@delete')->name('delete.jurnal');
+    Route::post('jurnal/update', 'JurnalController@update')->name('update.jurnal');
+    Route::get('jurnal/cart', 'JurnalController@list')->name('json.cart');
+    Route::post('jurnal/cart/insert', 'JurnalController@add')->name('insert.cart');
+    Route::get('jurnal/cart/delete', 'JurnalController@del_cart')->name('delete.cart');
     /** pembayaran*/
     Route::get('transaksi/pembayaran', 'PembayaranController@index')->name('pembayaran');
     Route::post('transaksi/pembayaran', 'PembayaranController@index')->name('json.pembayaran');
@@ -40,12 +58,20 @@ Route::middleware(['auth:user', 'ceklevel:mahasiswa,pembina'])->group(function (
     Route::post('transaksi/pemasukan/insert', 'PemasukanController@insert')->name('insert.pemasukan');
     Route::get('transaksi/pemasukan/edit', 'PemasukanController@edit')->name('edit.pemasukan');
     Route::post('transaksi/pemasukan/update', 'PemasukanController@update')->name('update.pemasukan');
+    Route::get('transaksi/pemasukan/delete', 'PemasukanController@delete')->name('delete.pemasukan');
+    Route::get('pemasukan/cart', 'PemasukanController@list')->name('json.cart.pemasukan');
+    Route::post('pemasukan/cart/insert', 'PemasukanController@add')->name('insert.cart.pemasukan');
+    Route::get('pemasukan/cart/delete', 'PemasukanController@del_cart')->name('delete.cart.pemasukan');
     /** pengeluaran*/
     Route::get('transaksi/pengeluaran', 'PengeluaranController@index')->name('pengeluaran');
     Route::post('transaksi/pengeluaran', 'PengeluaranController@index')->name('json.pengeluaran');
     Route::post('transaksi/pengeluaran/insert', 'PengeluaranController@insert')->name('insert.pengeluaran');
     Route::get('transaksi/pengeluaran/edit', 'PengeluaranController@edit')->name('edit.pengeluaran');
     Route::post('transaksi/pengeluaran/update', 'PengeluaranController@update')->name('update.pengeluaran');
+    Route::get('transaksi/pengeluaran/delete', 'PengeluaranController@delete')->name('delete.pengeluaran');
+    Route::get('pengeluaran/cart', 'PengeluaranController@list')->name('json.cart.pengeluaran');
+    Route::post('pengeluaran/cart/insert', 'PengeluaranController@add')->name('insert.cart.pengeluaran');
+    Route::get('pengeluaran/cart/delete', 'PengeluaranController@del_cart')->name('delete.cart.pengeluaran');
     /** kegiatan*/
     Route::get('kegiatan', 'KegiatanController@index')->name('kegiatan');
     Route::post('kegiatan', 'KegiatanController@index')->name('json.kegiatan');

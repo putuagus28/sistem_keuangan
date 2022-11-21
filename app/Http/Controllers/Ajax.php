@@ -46,6 +46,7 @@ class Ajax extends Controller
                     ->where('ukms_id', Session::get('ukms_id'))
                     ->sum('nominal');
             }
+            $q= $q/2;
         } else if ($table == 'pengeluaran') {
             if ($metode != 'all') {
                 $q = Pengeluaran::where('ukms_id', Session::get('ukms_id'))
@@ -59,6 +60,7 @@ class Ajax extends Controller
                     ->where('ukms_id', Session::get('ukms_id'))
                     ->sum('nominal');
             }
+            $q= $q/2;
         } else {
             $q = [];
         }

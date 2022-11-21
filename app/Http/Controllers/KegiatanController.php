@@ -37,7 +37,20 @@ class KegiatanController extends Controller
                     }
                     return $btn;
                 })
-                ->rawColumns(['action'])
+                ->addColumn('total', function ($row) {
+                    $pemasukan = 0;
+                    $pengeluaran = 0;
+                    foreach($row->detail as $v){
+                       if($v->status=="pemasukan"){
+                        $pemasukan += $v->nominal;
+                       }else{
+                        $pengeluaran += $v->nominal;
+                       }
+                    }
+                    
+                    return $pengeluaran;
+                })
+                ->rawColumns(['action','total'])
                 ->make(true);
         }
         return view('transaksi.kegiatan');

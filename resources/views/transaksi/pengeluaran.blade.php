@@ -57,7 +57,7 @@
                     </div>
                 </div>
 
-                <div class="col-12 col-sm-4 col-md-4">
+                {{-- <div class="col-12 col-sm-4 col-md-4">
                     <div class="small-box bg-success shadow-sm">
                         <div class="inner">
                             <p>Total Cash</p>
@@ -79,7 +79,7 @@
                             <i class="fas fa-paper-plane"></i>
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </div>
 
             <div class="row">
@@ -112,11 +112,13 @@
                                         <th>No</th>
                                         <th>Tanggal</th>
                                         <th>Bulan</th>
-                                        <th>Jumlah</th>
+                                        <th>Debet</th>
+                                        <th>Kredit</th>
+                                        <th>Nama Akun</th>
                                         <th>Nota</th>
                                         <th>Keterangan</th>
-                                        <th>Metode</th>
                                         <th>User Added</th>
+                                        <th>Date Added</th>
                                         <th>Opsi</th>
                                     </tr>
                                 </thead>
@@ -131,7 +133,7 @@
 
     <!-- Modal -->
     <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title"></h5>
@@ -139,47 +141,48 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form action="" id="modalForm">
-                    @csrf
-                    <input type="hidden" name="id" id="id">
-                    <div class="modal-body">
+                <input type="hidden" name="id" id="id">
+                <div class="modal-body">
+                    <form action="" id="modalForm">
+                        @csrf
                         <div class="row">
-                            <div class="col-12 col-sm-4">
+                            <div class="col-12 col-sm-3">
                                 <div class="form-group">
                                     <label for="">Tanggal</label>
                                     <input type="date" name="tanggal" id="tanggal" class="form-control">
                                 </div>
                             </div>
-                            <div class="col-12 col-sm-4">
+                            <div class="col-12 col-sm-3">
+                                <div class="form-group">
+                                    <label for="">Pilih Akun</label>
+                                    <select class="form-control select2" name="akuns_id" id="akuns_id">
+                                        <option disabled selected value="">Pilih</option>
+                                        @foreach ($akun as $item)
+                                            <option value="{{ $item->id }}">{{ $item->keterangan }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-3">
                                 <div class="form-group">
                                     <label for="">Nominal</label>
                                     <input type="text" name="nominal" id="nominal" placeholder="Rp "
                                         class="form-control">
                                 </div>
                             </div>
-                            <div class="col-12 col-sm-4">
-                                <div class="form-group">
-                                    <label for="">Metode Bayar</label>
-                                    <select class="form-control select2" name="metode" id="metode">
-                                        <option disabled selected value="">Pilih</option>
-                                        <option value="cash">Cash</option>
-                                        <option value="transfers">Transfers</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-4">
-                                <div class="form-group">
-                                    <label for="">Keterangan</label>
-                                    <input type="text" name="keterangan" id="keterangan" class="form-control">
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-4">
+                            <div class="col-12 col-sm-3">
                                 <div class="form-group">
                                     <label for="">Upload Nota</label>
                                     <input type="file" name="nota" id="nota" class="form-control">
                                 </div>
                             </div>
-                            <div class="col-12 col-sm-4">
+                            <div class="col-12 col-sm-3">
+                                <div class="form-group">
+                                    <label for="">Keterangan</label>
+                                    <input type="text" name="keterangan" id="keterangan" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-3">
                                 <div class="form-group">
                                     <label for="">Pengurus</label>
                                     <input type="text" name="pengurus" id="pengurus" class="form-control" disabled
@@ -187,11 +190,29 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Simpan</button>
-                    </div>
-                </form>
+                        <button type="submit" class="btn btn-danger">Tambahkan</button>
+                    </form>
+                    <hr>
+                    <table class="table table-bordered table-hover mt-2" id="table2">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Nama Akun</th>
+                                <th>Debet</th>
+                                <th>Kredit</th>
+                                <th>Keterangan</th>
+                                <th>Opsi</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <form action="" method="post" id="formFinish">
+                        @csrf
+                        <button type="submit" class="btn btn-danger" id="finish">Finish</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -229,6 +250,46 @@
             return result;
         }
 
+        /* Fungsi formatRupiah */
+        function formatRupiah(num) {
+            var p = num.toFixed(0).split(".");
+            return "Rp " + p[0].split("").reverse().reduce(function(acc, num, i, orig) {
+                return num + (num != "-" && i && !(i % 3) ? "." : "") + acc;
+            }, "");
+        }
+
+        function cart() {
+            $.get("{{ route('json.cart.pengeluaran') }}",
+                function(data, textStatus, jqXHR) {
+                    var html = '';
+                    if (data.length > 0) {
+                        $('.modal-footer').show();
+                        $.each(data, function(i, v) {
+                            html += '<tr>';
+                            html += '<td>' + v.tanggal + '</td>';
+                            html += '<td>' + v.akun.keterangan + '</td>';
+                            html += '<td>' + formatRupiah(v.debet) + '</td>';
+                            html += '<td>' + formatRupiah(v.kredit) + '</td>';
+                            html += '<td>' + v.keterangan + '</td>';
+                            html +=
+                                '<td><button class="btn btn-sm btn-danger" id="hapus" data-id="' +
+                                v.id +
+                                '"><i class="fa fa-trash" aria-hidden="true"></i></button></td>';
+                            html += '</tr>';
+                        });
+                    } else {
+                        $('.modal-footer').hide();
+                        html += '<tr class="text-center">';
+                        html += '<td colspan="6">No Data</td>';
+                        html += '</tr>';
+                    }
+                    $('#table2 tbody').html(html);
+                },
+                "JSON"
+            );
+        }
+
+        cart();
         refresh_total();
 
         function refresh_total(m = '') {
@@ -239,6 +300,9 @@
 
         $(document).ready(function() {
             var role = "{{ auth()->user()->role }}";
+            var jabatan = "{{ Session::get('jabatan') }}";
+            var isVisibleColumns = (jabatan.includes("ketua", "pembina") ? false : true);
+
             $.fn.modal.Constructor.prototype._enforceFocus = function() {};
 
             var bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September',
@@ -297,8 +361,16 @@
                         },
                     },
                     {
-                        data: 'nominal',
-                        name: 'nominal'
+                        data: 'debet',
+                        name: 'debet'
+                    },
+                    {
+                        data: 'kredit',
+                        name: 'kredit'
+                    },
+                    {
+                        data: 'akun.keterangan',
+                        name: 'akun.keterangan'
                     },
                     {
                         data: 'nota',
@@ -313,34 +385,49 @@
                         name: 'keterangan'
                     },
                     {
-                        data: 'metode',
-                        render: function(data, type, row, meta) {
-                            if (row.metode == "cash") {
-                                return '<span class="badge badge-pill badge-success">' +
-                                    row
-                                    .metode +
-                                    '</span>';
-                            } else {
-                                return '<span class="badge badge-pill badge-danger">' +
-                                    row.metode +
-                                    '</span>';
-                            }
-                        },
-                    },
-                    {
                         data: 'users.mhs.name',
                         name: 'users.mhs.name'
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at'
                     },
                     {
                         data: 'action',
                         name: 'action',
                         orderable: false,
-                        searchable: false
+                        searchable: false,
+                        visible: isVisibleColumns,
                     },
                 ],
                 order: [
-                    [1, "desc"]
-                ]
+                    [9, "asc"]
+                ],
+                drawCallback: function(settings) {
+                    var span = 1;
+                    var prevTD = "";
+                    var prevTDVal = "";
+
+                    $("#table1 tr td:last-child").each(
+                        function() { //for each first td in every tr
+                            var $this = $(this);
+                            if ($this.text() ==
+                                prevTDVal) { // check value of previous td text
+                                span++;
+                                if (prevTD != "") {
+                                    prevTD.attr("rowspan",
+                                        span); // add attribute to previous td
+                                    prevTD.addClass('align-middle');
+                                    $this.remove(); // remove current td
+                                }
+                            } else {
+                                prevTD = $this; // store current td 
+                                prevTDVal = $this.text();
+                                span = 1;
+                            }
+                        });
+                    $("#table1").find('span').remove();
+                },
             });
 
             // filter custom
@@ -413,6 +500,81 @@
                 });
             });
 
+            // delete data
+            table.on("click", "#hapus", function(e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+                Swal.fire({
+                    title: 'Yakin untuk menghapus ini ?',
+                    showDenyButton: true,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: `Hapus`,
+                    denyButtonText: `Batal`,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('delete.pengeluaran') }}",
+                            type: "GET",
+                            dataType: "JSON",
+                            data: {
+                                'id': id
+                            },
+                            cache: false,
+                            success: function(response) {
+                                if (response.status) {
+                                    table.ajax.reload();
+                                    refresh_total();
+                                }
+                            },
+                            error: function(response) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Opps!',
+                                    text: 'server error!'
+                                });
+                            }
+                        });
+                    }
+                })
+            });
+
+            // delete cart
+            $('#table2').on("click", "#hapus", function(e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+                Swal.fire({
+                    title: 'Yakin untuk menghapus ini ?',
+                    showDenyButton: true,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: `Hapus`,
+                    denyButtonText: `Batal`,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('delete.cart.pengeluaran') }}",
+                            type: "GET",
+                            dataType: "JSON",
+                            data: {
+                                'id': id
+                            },
+                            cache: false,
+                            success: function(response) {
+                                cart();
+                            },
+                            error: function(response) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Opps!',
+                                    text: 'server error!'
+                                });
+                            }
+                        });
+                    }
+                })
+            });
+
             $('#nominal').keyup(function(event) {
                 // skip for arrow keys
                 if (event.which >= 37 && event.which <= 40) return;
@@ -433,8 +595,62 @@
                 }
             });
 
-            // tambah data
+            // tambah cart
             var validator = $("#modalForm").validate({
+                rules: {
+                    tanggal: {
+                        required: true,
+                    },
+                    nominal: {
+                        required: true,
+                    },
+                    akuns_id: {
+                        required: true,
+                    },
+                    saldo: {
+                        required: true,
+                    },
+                    nota: {
+                        required: true,
+                    },
+                },
+                errorElement: "div",
+                errorPlacement: function(error, element) {
+                    error.addClass('invalid-feedback');
+                    element.closest('.input-group, .form-group').append(error);
+                },
+                highlight: function(element, errorClass, validClass) {
+                    $(element).addClass('is-invalid');
+                },
+                unhighlight: function(element, errorClass, validClass) {
+                    $(element).removeClass('is-invalid');
+                },
+                submitHandler: function(form) {
+                    $.ajax({
+                        url: "{{ route('insert.cart.pengeluaran') }}",
+                        type: "POST",
+                        dataType: "JSON",
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        data: new FormData(form),
+                        success: function(response) {
+                            cart();
+                        },
+                        error: function(response) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Opps!',
+                                text: 'server error!'
+                            });
+                            console.log(response);
+                        }
+                    });
+                }
+            });
+
+            // tambah data
+            var validator = $("#formFinish").validate({
                 rules: {
                     tanggal: {
                         required: true,
@@ -483,87 +699,88 @@
                 },
                 submitHandler: function(form) {
                     var id = $(form).find('#id').val();
-                    if (id == "") {
-                        $.ajax({
-                            url: "{{ route('insert.pengeluaran') }}",
-                            type: "POST",
-                            dataType: "JSON",
-                            cache: false,
-                            contentType: false,
-                            processData: false,
-                            data: new FormData(form),
-                            success: function(response) {
-                                if (response.status) {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: response.message,
-                                        showCancelButton: false,
-                                        showConfirmButton: true
-                                    }).then(function() {
-                                        $('#modal').modal('hide');
-                                        table.ajax.reload();
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: response.message,
-                                        showCancelButton: false,
-                                        showConfirmButton: true
-                                    }).then(function() {
-                                        table.ajax.reload();
-                                    });
-                                }
-                            },
-                            error: function(response) {
+                    // if (id == "") {
+                    $.ajax({
+                        url: "{{ route('insert.pengeluaran') }}",
+                        type: "POST",
+                        dataType: "JSON",
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        data: new FormData(form),
+                        success: function(response) {
+                            if (response.status) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true
+                                }).then(function() {
+                                    $('#modal').modal('hide');
+                                    table.ajax.reload();
+                                });
+                            } else {
                                 Swal.fire({
                                     icon: 'error',
-                                    title: 'Opps!',
-                                    text: 'server error!'
+                                    title: response.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true
+                                }).then(function() {
+                                    table.ajax.reload();
                                 });
-                                console.log(response);
                             }
-                        });
-                    } else {
-                        $.ajax({
-                            url: "{{ route('update.pengeluaran') }}",
-                            type: "POST",
-                            dataType: "JSON",
-                            cache: false,
-                            contentType: false,
-                            processData: false,
-                            data: new FormData(form),
-                            success: function(response) {
-                                if (response.status) {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: response.message,
-                                        showCancelButton: false,
-                                        showConfirmButton: true
-                                    }).then(function() {
-                                        $('#modal').modal('hide');
-                                        table.ajax.reload();
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: response.message,
-                                        showCancelButton: false,
-                                        showConfirmButton: true
-                                    }).then(function() {
-                                        table.ajax.reload();
-                                    });
-                                }
-                            },
-                            error: function(response) {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Opps!',
-                                    text: 'server error!'
-                                });
-                                console.log(response);
-                            }
-                        });
-                    }
+                        },
+                        error: function(response) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Opps!',
+                                text: 'server error!'
+                            });
+                            console.log(response);
+                        }
+                    });
+                    // } else {
+                    //     $.ajax({
+                    //         url: "{{ route('update.pengeluaran') }}",
+                    //         type: "POST",
+                    //         dataType: "JSON",
+                    //         cache: false,
+                    //         contentType: false,
+                    //         processData: false,
+                    //         data: new FormData(form),
+                    //         success: function(response) {
+                    //             if (response.status) {
+                    //                 Swal.fire({
+                    //                     icon: 'success',
+                    //                     title: response.message,
+                    //                     showCancelButton: false,
+                    //                     showConfirmButton: true
+                    //                 }).then(function() {
+                    //                     $('#modal').modal('hide');
+                    //                     table.ajax.reload();
+                    //                 });
+                    //             } else {
+                    //                 Swal.fire({
+                    //                     icon: 'error',
+                    //                     title: response.message,
+                    //                     showCancelButton: false,
+                    //                     showConfirmButton: true
+                    //                 }).then(function() {
+                    //                     table.ajax.reload();
+                    //                 });
+                    //             }
+                    //         },
+                    //         error: function(response) {
+                    //             Swal.fire({
+                    //                 icon: 'error',
+                    //                 title: 'Opps!',
+                    //                 text: 'server error!'
+                    //             });
+                    //             console.log(response);
+                    //         }
+                    //     });
+                    // }
+                    cart();
                     refresh_total();
                 }
             });

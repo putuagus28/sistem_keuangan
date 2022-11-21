@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mahasiswa;
 use App\Ukm;
+use App\Akun;
 use App\AnggotaUkm;
 use App\Pemasukan;
 use App\Pembayaran;
@@ -33,9 +34,8 @@ class DashboardController extends Controller
                 'total_saldo' => ($this->pemasukan() - $this->pengeluaran()),
                 'total_pemasukan' => $this->pemasukan(),
                 'total_pengeluaran' => $this->pengeluaran(),
-                'total_cash' => $this->total_metode('cash'),
-                'total_transfers' => $this->total_metode('transfers'),
-
+                'total_cash' => $this->total_metode('kas kecil'),
+                'total_transfers' => $this->total_metode('kas bank'),
             ];
             $page = 'pengurus-ukm';
             // jika mhs belum memiliki ukm atau memilih ukm maka tidak bisa masuk ke dashboard
@@ -50,8 +50,8 @@ class DashboardController extends Controller
                 'total_saldo' => ($this->pemasukan() - $this->pengeluaran()),
                 'total_pemasukan' => $this->pemasukan(),
                 'total_pengeluaran' => $this->pengeluaran(),
-                'total_cash' => $this->total_metode('cash'),
-                'total_transfers' => $this->total_metode('transfers'),
+                'total_cash' => $this->total_metode('kas kecil'),
+                'total_transfers' => $this->total_metode('kas bank'),
             ];
             $page = 'pengurus-ukm';
             if (Session::get('ukms_id') == null)
@@ -75,39 +75,45 @@ class DashboardController extends Controller
     public function pemasukan()
     {
         $q1 = Pemasukan::where('ukms_id', Session::get('ukms_id'))
-            ->whereMonth('tanggal', date('m'))
+            ->whereBetween(DB::raw("YEAR(tanggal)"),[date('Y'),date('Y',strtotime("+1 year"))])
             ->sum('nominal');
         // $q2 = Pembayaran::where('ukms_id',Session::get('ukms_id'))
         // ->whereMonth('tanggal',date('m'))
         // ->sum('nominal');
 
-        return $q1;
+        return $q1/2;
     }
 
     public function total_metode($metode = null)
     {
-        $q1 = Pemasukan::where('ukms_id', Session::get('ukms_id'))
-            ->where('metode', $metode)
-            ->whereMonth('tanggal', date('m'))
-            ->sum('nominal');
+        // $q1 = Pemasukan::where('ukms_id', Session::get('ukms_id'))
+        //     ->where('metode', $metode)
+        //     ->whereMonth('tanggal', date('m'))
+        //     ->sum('nominal');
         // $q2 = Pembayaran::where('ukms_id', Session::get('ukms_id'))
         //     ->where('metode', $metode)
         //     ->whereMonth('tanggal', date('m'))
         //     ->sum('nominal');
-        $q3 = Pengeluaran::where('ukms_id', Session::get('ukms_id'))
-            ->where('metode', $metode)
-            ->whereMonth('tanggal', date('m'))
-            ->sum('nominal');
-
-        return $q1 - $q3;
+        // $q3 = Pengeluaran::where('ukms_id', Session::get('ukms_id'))
+        //     ->where('metode', $metode)
+        //     ->whereMonth('tanggal', date('m'))
+        //     ->sum('nominal');
+        $q1 = Akun::where('keterangan',$metode) 
+            ->whereYear('created_at', date('Y'))
+            ->sum('debet');
+        $q2 = Akun::where('keterangan',$metode) 
+            ->whereYear('created_at', date('Y'))
+            ->sum('kredit');
+        return $q1 - $q2;
     }
 
     public function pengeluaran()
     {
         $q1 = Pengeluaran::where('ukms_id', Session::get('ukms_id'))
-            ->whereMonth('tanggal', date('m'))
+            // ->whereMonth('tanggal', date('m'))
+            ->whereBetween(DB::raw("YEAR(tanggal)"),[date('Y'),date('Y',strtotime("+1 year"))])
             ->sum('nominal');
-        return $q1;
+        return $q1/2;
     }
 
     public function chart()
@@ -119,43 +125,81 @@ class DashboardController extends Controller
 
         $total = [];
         $total2 = [];
-        for ($i = 1; $i <= 12; $i++) {
-            $db = DB::table("pemasukans")
-                ->selectRaw('SUM(nominal) as total')
-                ->where('ukms_id', Session::get('ukms_id'))
-                ->whereMonth('tanggal', '=', $i)
-                ->whereYear('tanggal', '=', date('Y'))
-                ->groupBy(DB::raw("MONTH(tanggal)"))
-                ->get();
-            if ($db->count() == null) {
-                $total[] = 0;
-            } else {
-                foreach ($db as $val) {
-                    $total[] = $val->total;
+        if(empty(Session::get('ukms_id'))){
+            for ($i = 1; $i <= 12; $i++) {
+                $db = DB::table("pemasukans")
+                    ->selectRaw('SUM(nominal) as total')
+                    ->whereMonth('tanggal', '=', $i)
+                    // ->whereYear('tanggal', '=', date('Y'))
+                    ->whereBetween(DB::raw("YEAR(tanggal)"),[date('Y'),date('Y',strtotime("+1 years"))])
+                    ->groupBy(DB::raw("MONTH(tanggal)"))
+                    ->get();
+                if ($db->count() == null) {
+                    $total[] = 0;
+                } else {
+                    foreach ($db as $val) {
+                        $total[] = $val->total/2;
+                    }
                 }
             }
-        }
 
-        for ($i = 1; $i <= 12; $i++) {
-            $db = DB::table("pengeluarans")
-                ->selectRaw('SUM(nominal) as total')
-                ->where('ukms_id', Session::get('ukms_id'))
-                ->whereMonth('tanggal', '=', $i)
-                ->whereYear('tanggal', '=', date('Y'))
-                ->groupBy(DB::raw("MONTH(tanggal)"))
-                ->get();
-            if ($db->count() == null) {
-                $total2[] = 0;
-            } else {
-                foreach ($db as $val) {
-                    $total2[] = $val->total;
+            for ($i = 1; $i <= 12; $i++) {
+                $db = DB::table("pengeluarans")
+                    ->selectRaw('SUM(nominal) as total')
+                    ->whereMonth('tanggal', '=', $i)
+                    // ->whereYear('tanggal', '=', date('Y'))
+                    ->whereBetween(DB::raw("YEAR(tanggal)"),[date('Y'),date('Y',strtotime("+1 years"))])
+                    ->groupBy(DB::raw("MONTH(tanggal)"))
+                    ->get();
+                if ($db->count() == null) {
+                    $total2[] = 0;
+                } else {
+                    foreach ($db as $val) {
+                        $total2[] = $val->total/2;
+                    }
+                }
+            }
+        }else{
+            for ($i = 1; $i <= 12; $i++) {
+                $db = DB::table("pemasukans")
+                    ->selectRaw('SUM(nominal) as total')
+                    ->where('ukms_id', Session::get('ukms_id'))
+                    ->whereMonth('tanggal', '=', $i)
+                    // ->whereYear('tanggal', '=', date('Y'))
+                    ->whereBetween(DB::raw("YEAR(tanggal)"),[date('Y'),date('Y',strtotime("+1 years"))])
+                    ->groupBy(DB::raw("MONTH(tanggal)"))
+                    ->get();
+                if ($db->count() == null) {
+                    $total[] = 0;
+                } else {
+                    foreach ($db as $val) {
+                        $total[] = $val->total /2;
+                    }
+                }
+            }
+
+            for ($i = 1; $i <= 12; $i++) {
+                $db = DB::table("pengeluarans")
+                    ->selectRaw('SUM(nominal) as total')
+                    ->where('ukms_id', Session::get('ukms_id'))
+                    ->whereMonth('tanggal', '=', $i)
+                    // ->whereYear('tanggal', '=', date('Y'))
+                    ->whereBetween(DB::raw("YEAR(tanggal)"),[date('Y'),date('Y',strtotime("+1 years"))])
+                    ->groupBy(DB::raw("MONTH(tanggal)"))
+                    ->get();
+                if ($db->count() == null) {
+                    $total2[] = 0;
+                } else {
+                    foreach ($db as $val) {
+                        $total2[] = $val->total;
+                    }
                 }
             }
         }
         $data['total'] = $total;
         $data['total2'] = $total2;
-        $data['title'] = 'Pemasukan ' . date('Y');
-        $data['title2'] = 'Pengeluaran ' . date('Y');
+        $data['title'] = 'Pemasukan ' . date('Y').'/'.date('Y',strtotime("+1 years"));
+        $data['title2'] = 'Pengeluaran ' . date('Y').'/'.date('Y',strtotime("+1 years"));
 
         return response()->json(array('data' => $data));
     }
@@ -170,38 +214,36 @@ class DashboardController extends Controller
             $db = DB::table("pemasukans")
                 ->selectRaw('SUM(nominal) as total')
                 ->where('ukms_id', $v->id)
-                ->whereMonth('tanggal', '=', date('n'))
-                ->whereYear('tanggal', '=', date('Y'))
-                ->groupBy(DB::raw("MONTH(tanggal)"))
+                ->whereBetween(DB::raw("YEAR(tanggal)"),[date('Y'),date('Y',strtotime("+1 years"))])
+                ->groupBy(DB::raw("YEAR(tanggal)"))
                 ->get();
             if ($db->count() == null) {
                 $total[] = 0;
             } else {
                 foreach ($db as $val) {
-                    $total[] = $val->total;
+                    $total[] = $val->total/2;
                 }
             }
 
             $db = DB::table("pengeluarans")
                 ->selectRaw('SUM(nominal) as total')
                 ->where('ukms_id', $v->id)
-                ->whereMonth('tanggal', '=', date('n'))
-                ->whereYear('tanggal', '=', date('Y'))
-                ->groupBy(DB::raw("MONTH(tanggal)"))
+                ->whereBetween(DB::raw("YEAR(tanggal)"),[date('Y'),date('Y',strtotime("+1 years"))])
+                ->groupBy(DB::raw("YEAR(tanggal)"))
                 ->get();
             if ($db->count() == null) {
                 $total2[] = 0;
             } else {
                 foreach ($db as $val) {
-                    $total2[] = $val->total;
+                    $total2[] = $val->total/2;
                 }
             }
         }
 
         $data['total'] = $total;
         $data['total2'] = $total2;
-        $data['title'] = 'Pemasukan ' . date('Y');
-        $data['title2'] = 'Pengeluaran ' . date('Y');
+        $data['title'] = 'Pemasukan ' . date('Y').'/'.date('Y',strtotime("+1 years"));
+        $data['title2'] = 'Pengeluaran ' . date('Y').'/'.date('Y',strtotime("+1 years"));
 
         return response()->json(array('data' => $data));
     }
