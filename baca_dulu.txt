@@ -1,3 +1,4 @@
 1. Jalankan perintah : composer update  
 2. Silahkan minta file .env kepada saya 
 3. Jalankan perintah php artisan serve
+4. baru kita jalankan xampp
