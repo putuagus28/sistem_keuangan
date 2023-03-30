@@ -52,6 +52,7 @@
                             </p>
                         </a>
                     </li>
+
                     <li class="nav-item has-treeview">
                         <a href="{{ route('akun') }}" class="nav-link {{ request()->is('akun') ? 'active' : '' }}">
                             <i class="nav-icon fa fa-list"></i>
@@ -60,6 +61,8 @@
                             </p>
                         </a>
                     </li>
+
+
                     <li class="nav-item has-treeview">
                         <a href="{{ route('jurnal') }}"
                             class="nav-link {{ request()->is('jurnal') ? 'active' : '' }}">
@@ -69,6 +72,30 @@
                             </p>
                         </a>
                     </li>
+
+
+                    <li class="nav-item has-treeview">
+                        <a href="{{ route('mutasi') }}"
+                            class="nav-link {{ request()->is('mutasi') ? 'active' : '' }}">
+                            <i class="nav-icon fa fa-book"></i>
+                            <p>
+                                Mutasi Akun
+                            </p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item has-treeview">
+                        <a href="{{ route('transfers') }}"
+                            class="nav-link {{ request()->is('transfers') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-link"></i>
+                            <p>
+                                Transfers Akun
+                            </p>
+                        </a>
+                    </li>
+
+
+
                     <li class="nav-item {{ request()->is('transaksi/*') ? 'menu-open' : '' }}">
                         <a href="#" class="nav-link {{ request()->is('transaksi/*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-edit"></i>

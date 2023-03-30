@@ -34,6 +34,20 @@ Route::middleware(['auth:user', 'ceklevel:mahasiswa,pembina'])->group(function (
     Route::get('akun/edit', 'AkunController@edit')->name('edit.akun');
     Route::get('akun/delete', 'AkunController@delete')->name('delete.akun');
     Route::post('akun/update', 'AkunController@update')->name('update.akun');
+    /** mutasi akutansi */
+    Route::get('mutasi', 'MutasiAkunController@index')->name('mutasi');
+    Route::post('mutasi', 'MutasiAkunController@index')->name('json.mutasi');
+    Route::post('mutasi/insert', 'MutasiAkunController@insert')->name('insert.mutasi');
+    Route::get('mutasi/edit', 'MutasiAkunController@edit')->name('edit.mutasi');
+    Route::get('mutasi/delete', 'MutasiAkunController@delete')->name('delete.mutasi');
+    Route::post('mutasi/update', 'MutasiAkunController@update')->name('update.mutasi');
+    /** transfers */
+    Route::get('transfers', 'TransfersController@index')->name('transfers');
+    Route::post('transfers', 'TransfersController@index')->name('json.transfers');
+    Route::post('transfers/insert', 'TransfersController@insert')->name('insert.transfers');
+    Route::get('transfers/edit', 'TransfersController@edit')->name('edit.transfers');
+    Route::get('transfers/delete', 'TransfersController@delete')->name('delete.transfers');
+    Route::post('transfers/update', 'TransfersController@update')->name('update.transfers');
     /** jurnal akutansi */
     Route::get('jurnal', 'JurnalController@index')->name('jurnal');
     Route::get('get/akun', 'JurnalController@getAkun')->name('getakun');
@@ -105,6 +119,7 @@ Route::middleware(['auth:user', 'ceklevel:kemahasiswaan'])->group(function () {
     Route::post('insertmahasiswa', 'MahasiswaController@insert')->name('insert.mahasiswa');
     Route::get('mahasiswa/edit', 'MahasiswaController@edit')->name('edit.mahasiswa');
     Route::post('mahasiswa/update', 'MahasiswaController@update')->name('update.mahasiswa');
+    Route::get('mahasiswa/delete', 'MahasiswaController@delete')->name('delete.mahasiswa');
     Route::get('mahasiswa/ukm/{id}', 'MahasiswaController@ukm')->name('ukm.mahasiswa');
     Route::post('mahasiswa/add/ukm', 'MahasiswaController@ukm_post')->name('ukm_post.mahasiswa');
     Route::get('mahasiswa/edit/ukm', 'MahasiswaController@ukm_edit')->name('ukm_edit.mahasiswa');
@@ -116,6 +131,8 @@ Route::middleware(['auth:user', 'ceklevel:kemahasiswaan'])->group(function () {
     Route::post('insertpembina', 'PembinaController@insert')->name('insert.pembina');
     Route::get('pembina/edit', 'PembinaController@edit')->name('edit.pembina');
     Route::post('pembina/update', 'PembinaController@update')->name('update.pembina');
+    Route::get('pembina/delete', 'PembinaController@delete')->name('delete.pembina');
+
     Route::get('pembina/ukm/{id}', 'PembinaController@ukm')->name('ukm.pembina');
     Route::post('pembina/add/ukm', 'PembinaController@ukm_post')->name('ukm_post.pembina');
     Route::get('pembina/edit/ukm', 'PembinaController@ukm_edit')->name('ukm_edit.pembina');
@@ -127,14 +144,14 @@ Route::middleware(['auth:user', 'ceklevel:kemahasiswaan'])->group(function () {
 Route::middleware(['auth:user', 'ceklevel:mahasiswa,pembina,kemahasiswaan'])->group(function () {
     /** dashboard */
     Route::get('dashboard', 'DashboardController@index')->name('dashboard');
-    Route::get('chart', 'DashboardController@chart')->name('chart');
-    Route::get('chartukm', 'DashboardController@chartukm')->name('chartukm');
+    Route::get('chart/{tahun1?}/{tahun2?}', 'DashboardController@chart')->name('chart');
+    Route::get('chartukm/{tahun1?}/{tahun2?}', 'DashboardController@chartukm')->name('chartukm');
     /** profile*/
     Route::get('profile', 'LoginController@index')->name('profile');
     Route::post('update-akun', 'LoginController@updateData')->name('update.profile');
     Route::get('getprofile', 'LoginController@get')->name('get.profile');
     /** ajax*/
-    Route::get('total_keuangan/{table}/{metode}/{bulan?}', 'Ajax@total_keuangan')->name('ajax.total');
+    Route::get('total_keuangan/{table}/{metode}/{bulan?}/{tahun?}', 'Ajax@total_keuangan')->name('ajax.total');
     /** laporan lpj */
     Route::get('laporan/{jenis}', 'LaporanController@index')->name('laporan');
     Route::get('laporan-pdf/{jenis}/{periode}/{id?}/{ukm?}', 'LaporanController@generatePDF')->name('laporan-pdf');

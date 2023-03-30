@@ -37,7 +37,7 @@ class MahasiswaController extends Controller
                 ->addColumn('action', function ($row) {
                     $btn = "";
                     $btn .= '<a href="javascript:void(0)" data-id="' . $row->id . '" class="btn btn-success btn-sm mx-1" id="edit"><i class="fas fa-edit"></i></a>';
-                    // $btn .= '<a href="javascript:void(0)" data-id="' . $row->id . '" class="btn btn-danger btn-sm mx-1" id="hapus"><i class="fa fa-trash" aria-hidden="true"></i></a>';
+                    $btn .= '<a href="javascript:void(0)" data-id="' . $row->id . '" class="btn btn-danger btn-sm mx-1" id="hapus"><i class="fa fa-trash" aria-hidden="true"></i></a>';
                     $btn .= '<a href="' . route('ukm.mahasiswa', ['id' => $row->id]) . '" data-id="' . $row->id . '" class="btn btn-danger btn-sm mx-1" id="ukm"><i class="fa fa-plus" aria-hidden="true"></i> Ukm</a>';
                     return $btn;
                 })
@@ -97,12 +97,12 @@ class MahasiswaController extends Controller
             }
         } else if ($request->jabatan == 'bendahara') {
             $q2 = AnggotaUkm::where('jabatan', 'bendahara')
-            ->where('ukms_id',$request->ukms_id)
-            ->count();
+                ->where('ukms_id', $request->ukms_id)
+                ->count();
             if ($q) {
                 return response()->json(['status' => false, 'message' => 'Mahasiswa sudah memilih ukm!']);
             } else if ($q2 >= 2) {
-                return response()->json(['status' => false, 'message' => 'Jabatan pada UKM sudah terisi oleh mahasiswa lain!'.$q2]);
+                return response()->json(['status' => false, 'message' => 'Jabatan pada UKM sudah terisi oleh mahasiswa lain!' . $q2]);
             } else {
                 $q1 = new AnggotaUkm;
                 $q1->ukms_id = $request->ukms_id;
@@ -114,8 +114,8 @@ class MahasiswaController extends Controller
             }
         } else if ($request->jabatan == 'sekretaris') {
             $q2 = AnggotaUkm::where('jabatan', 'sekretaris')
-            ->where('ukms_id',$request->ukms_id)
-            ->count();
+                ->where('ukms_id', $request->ukms_id)
+                ->count();
             if ($q) {
                 return response()->json(['status' => false, 'message' => 'Mahasiswa sudah memilih ukm!']);
             } else if ($q2 >= 2) {
@@ -211,6 +211,8 @@ class MahasiswaController extends Controller
     {
         $query = Mahasiswa::find($request->id);
         $foto = $query->foto;
+        $query->anggota()->delete();
+        $query->pembayaran()->delete();
         $del = $query->delete();
         if ($del) {
             if ($foto != "") {

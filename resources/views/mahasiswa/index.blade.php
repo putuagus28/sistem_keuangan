@@ -277,6 +277,51 @@
                 });
             });
 
+            // delete data
+            table.on("click", "#hapus", function(e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+                Swal.fire({
+                    title: 'Yakin untuk menghapus ini ?',
+                    showDenyButton: true,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: `Hapus`,
+                    denyButtonText: `Batal`,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('delete.mahasiswa') }}",
+                            type: "GET",
+                            dataType: "JSON",
+                            data: {
+                                'id': id
+                            },
+                            cache: false,
+                            success: function(response) {
+                                if (response.status) {
+                                    // Swal.fire({
+                                    //     icon: 'success',
+                                    //     title: response.message,
+                                    //     showCancelButton: false,
+                                    //     showConfirmButton: true
+                                    // }).then(function() {
+                                    table.ajax.reload();
+                                    // });
+                                }
+                            },
+                            error: function(response) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Opps!',
+                                    text: 'server error!'
+                                });
+                            }
+                        });
+                    }
+                })
+            });
+
             // tambah data
             var validator = $("#modalForm").validate({
                 rules: {

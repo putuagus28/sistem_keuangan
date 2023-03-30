@@ -46,6 +46,7 @@ class LaporanController extends Controller
             $query = Kegiatan::select('*', DB::raw('DATE_FORMAT(tanggal, "%d-%m-%Y") as tanggal'))
                 ->whereYear('tanggal', '>=', $periode[0])
                 ->whereYear('tanggal', '<=', $periode[1])
+                ->where('ukms_id', Session::get('ukms_id'))
                 ->orderBy('tanggal', 'desc')
                 ->get();
             $data = [
@@ -63,6 +64,7 @@ class LaporanController extends Controller
                 ->select('*', DB::raw('DATE_FORMAT(tanggal, "%d-%m-%Y") as tanggal'))
                 ->whereYear('tanggal', '>=', $periode[0])
                 ->whereYear('tanggal', '<=', $periode[1])
+                ->where('ukms_id', Session::get('ukms_id'))
                 ->orderBy('created_at', 'asc')
                 ->get();
             $data = [
@@ -100,7 +102,7 @@ class LaporanController extends Controller
                 $ukm = Ukm::find(Session::get('ukms_id'));
                 $ukm_id = $ukm->id;
             }
-            $akun = Akun::where('ukms_id', Session::get('ukms_id'))
+            $akun = Akun::where('ukms_id', $ukm_id)
                 ->whereIn('nama_reff', ['Activa'])
                 ->orderBy('keterangan', 'asc')
                 ->get();

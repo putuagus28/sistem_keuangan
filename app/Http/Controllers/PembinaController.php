@@ -29,19 +29,19 @@ class PembinaController extends Controller
                 ->addColumn('action', function ($row) {
                     $btn = "";
                     $btn .= '<a href="javascript:void(0)" data-id="' . $row->id . '" class="btn btn-success btn-sm mx-1" id="edit"><i class="fas fa-edit"></i></a>';
-                    // $btn .= '<a href="javascript:void(0)" data-id="' . $row->id . '" class="btn btn-danger btn-sm mx-1" id="hapus"><i class="fa fa-trash" aria-hidden="true"></i></a>';
+                    $btn .= '<a href="javascript:void(0)" data-id="' . $row->id . '" class="btn btn-danger btn-sm mx-1" id="hapus"><i class="fa fa-trash" aria-hidden="true"></i></a>';
                     $btn .= '<a href="' . route('ukm.pembina', ['id' => $row->id]) . '" data-id="' . $row->id . '" class="btn btn-danger btn-sm mx-1" id="ukm"><i class="fa fa-plus" aria-hidden="true"></i> Ukm</a>';
                     return $btn;
                 })
                 ->addColumn('ukm', function ($row) {
                     $ukm = [];
-                    foreach($row->anggota as $item){
-                        $ukm[] = '<span class="px-2 py-1 bg-dark">'.$item->ukm->nama.'</span>';
+                    foreach ($row->anggota as $item) {
+                        $ukm[] = '<span class="px-2 py-1 bg-dark">' . $item->ukm->nama . '</span>';
                     }
 
-                    return implode(' ',$ukm);
+                    return implode(' ', $ukm);
                 })
-                ->rawColumns(['action', 'foto','ukm'])
+                ->rawColumns(['action', 'foto', 'ukm'])
                 ->make(true);
         }
         return view('pembina.index');
@@ -186,7 +186,7 @@ class PembinaController extends Controller
         ])->exists();
         if ($q) {
             return response()->json(['status' => false, 'message' => 'Pembina sudah memilih ukm ini!']);
-        }else if ($q2) {
+        } else if ($q2) {
             return response()->json(['status' => false, 'message' => 'Ukm ini sudah memiliki pembina!']);
         } else {
             $q = new AnggotaUkm;

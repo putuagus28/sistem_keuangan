@@ -39,7 +39,6 @@
         <div class="container-fluid">
             <!-- Info boxes -->
             <div class="row">
-
                 <div class="col-12 col-sm-6 col-md-3">
                     <div class="small-box bg-warning shadow-sm">
                         <div class="inner">
@@ -68,7 +67,7 @@
                 <div class="col-12 col-sm-6 col-md-3">
                     <div class="small-box bg-info shadow-sm">
                         <div class="inner">
-                            <p>Pemasukan</p>
+                            <p>Total Pemasukan</p>
                             <h4>Rp {{ number_format($total_pemasukan, 0, ',', '.') }}</h4>
                         </div>
                         <div class="icon">
@@ -80,7 +79,7 @@
                 <div class="col-12 col-sm-6 col-md-3">
                     <div class="small-box bg-danger shadow-sm">
                         <div class="inner">
-                            <p>Pengeluaran</p>
+                            <p>Total Pengeluaran</p>
                             <h4>Rp {{ number_format($total_pengeluaran, 0, ',', '.') }}</h4>
                         </div>
                         <div class="icon">
@@ -112,7 +111,20 @@
                         </div>
                     </div>
                 </div>
-
+                <div class="col-12 col-sm-6 col-md-3">
+                    <form action="" method="get">
+                        <div class="form-group">
+                            <label for="">Filter</label>
+                            <select class="form-control" name="tahun" onchange="this.form.submit()" id="tahun">
+                                <option value="" disabled selected>Pilih</option>
+                                @for ($i = date('Y', strtotime('-1 year')); $i <= date('Y', strtotime('1 year')); $i++)
+                                    <option value="{{ $i . '/' . ($i + 1) }}">{{ $i . '/' . ($i + 1) }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="w-100"></div>
             </div>
 
             {{-- Chart --}}
@@ -146,7 +158,7 @@
     <script src="{{ asset('assets/plugins/chart.js/Chart.min.js') }}"></script>
     <script>
         $(document).ready(function() {
-            var url = "{{ route('chart') }}";
+            var url = "{{ url('chart/' . $tahun[0] . '/' . $tahun[1]) }}";
             var Total = [];
             var Total2 = [];
             var Bulan = [];

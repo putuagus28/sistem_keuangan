@@ -17,19 +17,21 @@ class PembayaranController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            if (!empty($request->searchByBulan)) {
+            if (!empty($request->searchByBulan) && !empty($request->searchByTahun)) {
                 $data = Pembayaran::select('*')
                     ->addSelect(DB::raw('MONTH(tanggal) as bulan', '*'))
                     ->with('mhs', 'ukm', 'users.mhs')
                     ->where('ukms_id', Session::get('ukms_id'))
                     ->whereMonth('tanggal', $request->searchByBulan)
+                    ->whereYear('tanggal', $request->searchByTahun)
                     ->get();
             } else {
                 $data = Pembayaran::select('*')
                     ->addSelect(DB::raw('MONTH(tanggal) as bulan', '*'))
                     ->with('mhs', 'ukm', 'users.mhs')
                     ->where('ukms_id', Session::get('ukms_id'))
-                    ->whereMonth('tanggal', date('m'))
+                    // ->whereMonth('tanggal', date('m'))
+                    // ->whereYear('tanggal', date('Y'))
                     ->get();
             }
             return Datatables::of($data)
@@ -64,7 +66,7 @@ class PembayaranController extends Controller
     public function belum_bayar(Request $request)
     {
         if ($request->ajax()) {
-            if (!empty($request->searchByBulan)) {
+            if (!empty($request->searchByBulan) && !empty($request->searchByTahun)) {
                 $data = AnggotaUkm::with('mhs', 'pembayaran')
                     ->where('ukms_id', Session::get('ukms_id'))
                     ->where('jabatan', '!=', 'pembina')
@@ -72,7 +74,8 @@ class PembayaranController extends Controller
                         $query->select('mahasiswas_id')
                             ->from('pembayarans')
                             ->where('ukms_id', Session::get('ukms_id'))
-                            ->whereMonth('tanggal', $request->searchByBulan);
+                            ->whereMonth('tanggal', $request->searchByBulan)
+                            ->whereYear('tanggal', $request->searchByTahun);
                     })
                     ->get();
             } else {
@@ -82,8 +85,8 @@ class PembayaranController extends Controller
                     ->whereNotIn('users_global', function ($query) {
                         $query->select('mahasiswas_id')
                             ->from('pembayarans')
-                            ->where('ukms_id', Session::get('ukms_id'))
-                            ->whereMonth('tanggal', date('m'));
+                            ->where('ukms_id', Session::get('ukms_id'));
+                        // ->whereMonth('tanggal', date('m'));
                     })
                     ->get();
             }

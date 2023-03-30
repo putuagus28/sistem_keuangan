@@ -13,6 +13,20 @@ class Mahasiswa extends Model
 
     public function anggota()
     {
-        return $this->hasMany(AnggotaUkm::class,'users_global','id');
+        return $this->hasMany(AnggotaUkm::class, 'users_global', 'id');
     }
+
+    public function pembayaran()
+    {
+        return $this->hasMany(Pembayaran::class, 'mahasiswas_id', 'id');
+    }
+
+    // public static function boot()
+    // {
+    //     parent::boot();
+    //     static::deleting(function ($delete) { // before delete() method call this
+    //         $delete->anggota()->delete();
+    //         $delete->pembayaran()->delete();
+    //     });
+    // }
 }

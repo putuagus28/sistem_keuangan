@@ -45,7 +45,7 @@
                     <div class="card">
                         <div class="card-header d-flex flex-row align-items-center">
                             <h3 class="card-title">List User</h3>
-                            <button class="btn btn-danger ml-auto" id="tambah">Tambah</button>
+                            {{-- <button class="btn btn-danger ml-auto" id="tambah">Tambah</button> --}}
                         </div>
                         <div class="card-body">
                             <table class="table table-bordered table-hover">

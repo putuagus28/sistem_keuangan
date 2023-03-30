@@ -48,7 +48,7 @@
     <button type="button"class="btn btn-danger hidden-print" id="btnPrint">Print</button>
     @if ($jenis == 'lpj')
         <div id="lpj">
-            <h4 class="text-center">Laporan Penanggung Jawab Kegiatan UKM {{ strtoupper($ukm->nama) }} <br> Periode
+            <h4 class="text-center">Laporan Penanggung Jawab Dana Kegiatan UKM {{ strtoupper($ukm->nama) }} <br> Periode
                 {{ $periode }}
             </h4>
             <br>
@@ -108,7 +108,7 @@
                         @endphp
                         <tr>
                             <td colspan="3"></td>
-                            <td style="background-color: silver" class="font-weight-bold">Sisa Kegiatan</td>
+                            <td style="background-color: silver" class="font-weight-bold">Sisa Dana Kegiatan</td>
                             <td style="background-color: silver" class="font-weight-bold">Rp
                                 {{ number_format($sisa, 0, ',', '.') }}</td>
                             <td style="background-color: silver"></td>

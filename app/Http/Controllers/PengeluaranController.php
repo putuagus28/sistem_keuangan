@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Pemasukan;
 use App\Pengeluaran;
 use App\AnggotaUkm;
 use App\Cart;
@@ -20,19 +21,20 @@ class PengeluaranController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            if (!empty($request->searchByBulan)) {
+            if (!empty($request->searchByBulan) && !empty($request->searchByTahun)) {
                 $data = Pengeluaran::select('*')
                     ->addSelect(DB::raw('MONTH(tanggal) as bulan', '*'))
                     ->with('ukm', 'akun', 'users.mhs')
                     ->where('ukms_id', Session::get('ukms_id'))
                     ->whereMonth('tanggal', $request->searchByBulan)
+                    ->whereYear('tanggal', $request->searchByTahun)
                     ->get();
             } else {
                 $data = Pengeluaran::select('*')
                     ->addSelect(DB::raw('MONTH(tanggal) as bulan', '*'))
                     ->with('ukm', 'akun', 'users.mhs')
                     ->where('ukms_id', Session::get('ukms_id'))
-                    ->whereMonth('tanggal', date('m'))
+                    // ->whereMonth('tanggal', date('m'))
                     ->get();
             }
             return Datatables::of($data)
@@ -111,97 +113,107 @@ class PengeluaranController extends Controller
         try {
             // jika balance
             if ($this->balance()) {
-                $cart = Cart::with('akun')
-                    ->where('kategori', 'pengeluaran')
-                    ->where('ukms_id', Session::get('ukms_id'))
-                    ->orderBy('created_at', 'desc')
-                    ->get();
-                $total_modal = 0;
-                $kode = Str::random(6);
-                foreach ($cart as $item) {
-                    $jenis_saldo = ($item->debet == 0 ? 'kredit' : 'debet');
-                    $saldo = ($item->debet == 0 ? $item->kredit : $item->debet);
-                    $total_modal += $saldo;
-                    $akun = Akun::find($item->akuns_id);
+                if ($this->saldo_ukm() <= 0) {
+                    return response()->json(['status' => false, 'message' => 'Saldo Ukm tidak cukup']);
+                } else {
+                    $cart = Cart::with('akun')
+                        ->where('kategori', 'pengeluaran')
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+                    $total_modal = 0;
+                    $kode = Str::random(6);
+                    foreach ($cart as $item) {
+                        $jenis_saldo = ($item->debet == 0 ? 'kredit' : 'debet');
+                        $saldo = ($item->debet == 0 ? $item->kredit : $item->debet);
+                        $total_modal += $saldo;
+                        $akun = Akun::find($item->akuns_id);
 
-                    $pem = new Pengeluaran;
-                    $pem->kode = $kode;
-                    $pem->tanggal = date('Y-m-d', strtotime($item->tanggal));
-                    $pem->nominal = str_replace(['Rp', '.', ' '], '', trim($saldo));
-                    $pem->keterangan = $item->keterangan;
-                    $pem->nota = $item->nota;
-                    $pem->ukms_id = Session::get('ukms_id');
-                    $pem->users_id = auth()->user()->id;
+                        $pem = new Pengeluaran;
+                        $pem->kode = $kode;
+                        $pem->tanggal = date('Y-m-d', strtotime($item->tanggal));
+                        $pem->nominal = str_replace(['Rp', '.', ' '], '', trim($saldo));
+                        $pem->keterangan = $item->keterangan;
+                        $pem->nota = $item->nota;
+                        $pem->ukms_id = Session::get('ukms_id');
+                        $pem->users_id = auth()->user()->id;
 
-                    // jika akun modal, maka kebalikan
-                    if (in_array($akun->nama_reff, ["Modal", "Kewajiban", "Pendapatan"])) {
-                        $up = Akun::find($item->akuns_id);
-                        // khusus modal
-                        if ($akun->nama_reff == "Modal") {
-                            if ($jenis_saldo == "debet") {
-                                $up->saldo_awal -= $saldo;
+                        // jika akun modal, maka kebalikan
+                        if (in_array($akun->nama_reff, ["Modal", "Kewajiban", "Pendapatan"])) {
+                            $up = Akun::find($item->akuns_id);
+                            // khusus modal
+                            if ($akun->nama_reff == "Modal") {
+                                if ($jenis_saldo == "debet") {
+                                    $up->saldo_awal -= $saldo;
+                                } else {
+                                    $up->saldo_awal += $saldo;
+                                }
+                                $up->{$jenis_saldo} += $saldo;
+                                $up->save();
                             } else {
-                                $up->saldo_awal += $saldo;
+                                // pendapatan, kewajiban
+                                $m = Akun::where('nama_reff', 'Modal')
+                                    ->where('ukms_id', Session::get('ukms_id'))
+                                    ->first();
+                                $modal = Akun::find($m->id);
+                                // kalkulasi saldo akun
+                                if ($jenis_saldo == "debet") {
+                                    $modal->saldo_awal -= $saldo;
+                                } else {
+                                    $modal->saldo_awal += $saldo;
+                                }
+                                $modal->save();
+                                $up->{$jenis_saldo} += $saldo;
+                                $up->save();
                             }
-                            $up->{$jenis_saldo} += $saldo;
-                            $up->save();
                         } else {
-                            // pendapatan, kewajiban
-                            $m = Akun::where('nama_reff', 'Modal')->first();
-                            $modal = Akun::find($m->id);
-                            // kalkulasi saldo akun
-                            if ($jenis_saldo == "debet") {
-                                $modal->saldo_awal -= $saldo;
-                            } else {
-                                $modal->saldo_awal += $saldo;
-                            }
-                            $modal->save();
+                            $up = Akun::find($item->akuns_id);
                             $up->{$jenis_saldo} += $saldo;
                             $up->save();
+
+                            // $m = Akun::where('nama_reff', 'Modal')
+                            // ->where('ukms_id', Session::get('ukms_id'))
+                            // ->first();
+                            // $modal = Akun::find($m->id);
+                            // // kalkulasi saldo akun
+                            // if ($jenis_saldo == "debet") {
+                            //     $modal->saldo_awal += $saldo;
+                            // } else {
+                            //     $modal->saldo_awal -= $saldo;
+                            // }
+                            // $modal->save();
                         }
-                    } else {
-                        $up = Akun::find($item->akuns_id);
-                        $up->{$jenis_saldo} += $saldo;
-                        $up->save();
+                        $pem->no_reff = $akun->no_reff;
+                        $pem->{$jenis_saldo} = str_replace(['Rp', '.', ' '], '', trim($saldo));
+                        $pem->akuns_id = $item->akuns_id;
+                        $pem->created_at = $item->created_at;
+                        $pem->updated_at = $item->updated_at;
+                        $pem->save();
 
-                        // $m = Akun::where('nama_reff', 'Modal')->first();
-                        // $modal = Akun::find($m->id);
-                        // // kalkulasi saldo akun
-                        // if ($jenis_saldo == "debet") {
-                        //     $modal->saldo_awal += $saldo;
-                        // } else {
-                        //     $modal->saldo_awal -= $saldo;
-                        // }
-                        // $modal->save();
+                        // insert jurnal
+                        $jurnal = new Jurnal;
+                        $jurnal->tanggal = date('Y-m-d', strtotime($item->tanggal));
+                        $jurnal->no_reff = $item->no_reff;
+                        $jurnal->keterangan = 'pengeluaran';
+                        $jurnal->akuns_id = $item->akuns_id;
+                        $jurnal->{$jenis_saldo} = $saldo;
+                        $jurnal->ukms_id = Session::get('ukms_id');
+                        $jurnal->users_id = auth()->user()->id;
+                        $jurnal->id_transaksi = $kode;
+                        $jurnal->created_at = $item->created_at;
+                        $jurnal->updated_at = $item->updated_at;
+                        $jurnal->save();
                     }
-                    $pem->no_reff = $akun->no_reff;
-                    $pem->{$jenis_saldo} = str_replace(['Rp', '.', ' '], '', trim($saldo));
-                    $pem->akuns_id = $item->akuns_id;
-                    $pem->created_at = $item->created_at;
-                    $pem->updated_at = $item->updated_at;
-                    $pem->save();
-
-                    // insert jurnal
-                    $jurnal = new Jurnal;
-                    $jurnal->tanggal = date('Y-m-d', strtotime($item->tanggal));
-                    $jurnal->no_reff = $item->no_reff;
-                    $jurnal->keterangan = 'pengeluaran';
-                    $jurnal->akuns_id = $item->akuns_id;
-                    $jurnal->{$jenis_saldo} = $saldo;
-                    $jurnal->ukms_id = Session::get('ukms_id');
-                    $jurnal->users_id = auth()->user()->id;
-                    $jurnal->id_transaksi = $kode;
-                    $jurnal->created_at = $item->created_at;
-                    $jurnal->updated_at = $item->updated_at;
-                    $jurnal->save();
+                    // mengurangi modal 
+                    $m = Akun::where('nama_reff', 'Modal')
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->first();
+                    $modal = Akun::find($m->id);
+                    $modal->saldo_awal -= $total_modal / 2;
+                    $modal->save();
+                    $this->delAll_cart();
+                    return response()->json(['status' => true, 'message' => 'Success']);
                 }
-                // mengurangi modal 
-                $m = Akun::where('nama_reff', 'Modal')->first();
-                $modal = Akun::find($m->id);
-                $modal->saldo_awal -= $total_modal / 2;
-                $modal->save();
-                $this->delAll_cart();
-                return response()->json(['status' => true, 'message' => 'Tersimpan']);
             } else {
                 return response()->json(['status' => false, 'message' => 'Transaksi belum balance']);
             }
@@ -292,7 +304,9 @@ class PengeluaranController extends Controller
         }
 
         // select akun modal
-        $m = Akun::where('nama_reff', 'Modal')->first();
+        $m = Akun::where('nama_reff', 'Modal')
+            ->where('ukms_id', Session::get('ukms_id'))
+            ->first();
         // update saldo awal modal
         $modal = Akun::find($m->id);
         $modal->saldo_awal += $total / 2;
@@ -313,6 +327,40 @@ class PengeluaranController extends Controller
             ->sum('kredit');
 
         return $debet == $kredit;
+    }
+
+    function saldo_ukm()
+    {
+        $akun = Akun::where('ukms_id', Session::get('ukms_id'))
+            ->whereIn('nama_reff', ['Activa'])
+            ->orderBy('keterangan', 'asc')
+            ->get();
+        $akuns = [];
+        foreach ($akun as $a) {
+            $akuns[] = $a->id;
+        }
+
+        $cart = Cart::with('akun')
+            ->where('kategori', 'pengeluaran')
+            ->where('ukms_id', Session::get('ukms_id'))
+            ->orderBy('created_at', 'desc')
+            ->get();
+        $total_modal = 0;
+        // $kode = Str::random(6);
+        foreach ($cart as $item) {
+            $saldo = ($item->debet == 0 ? $item->kredit : $item->debet);
+            $total_modal += $saldo;
+        }
+
+        $pemasukan = Pemasukan::where('ukms_id', Session::get('ukms_id'))
+            ->whereIn('akuns_id', $akuns)
+            ->sum('nominal');
+        $pengeluaran = Pengeluaran::where('ukms_id', Session::get('ukms_id'))
+            ->whereIn('akuns_id', $akuns)
+            ->sum('nominal');
+        $saldo = ($pemasukan / 2) - ($pengeluaran / 2);
+
+        return $saldo - $total_modal;
     }
 
     // cart

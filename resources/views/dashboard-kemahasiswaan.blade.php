@@ -72,6 +72,20 @@
                     </div>
                 </div>
 
+                <div class="col-12 col-sm-6 col-md-3">
+                    <form action="" method="get">
+                        <div class="form-group">
+                            <label for="">Filter</label>
+                            <select class="form-control" name="tahun" onchange="this.form.submit()" id="tahun">
+                                <option value="" disabled selected>Pilih</option>
+                                @for ($i = date('Y', strtotime('-1 year')); $i <= date('Y', strtotime('1 year')); $i++)
+                                    <option value="{{ $i . '/' . ($i + 1) }}">{{ $i . '/' . ($i + 1) }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="w-100"></div>
             </div>
 
             {{-- Chart --}}
@@ -128,7 +142,8 @@
     <script src="{{ asset('assets/plugins/chart.js/Chart.min.js') }}"></script>
     <script>
         $(document).ready(function() {
-            var url = "{{ route('chartukm') }}";
+            // var url = "{{ route('chartukm') }}";
+            var url = "{{ url('chartukm/' . $tahun[0] . '/' . $tahun[1]) }}";
             var Total = [];
             var Total2 = [];
             var Ukm = [];
@@ -217,7 +232,8 @@
     </script>
     <script>
         $(document).ready(function() {
-            var url = "{{ route('chart') }}";
+            // var url = "{{ route('chart') }}";
+            var url = "{{ url('chart/' . $tahun[0] . '/' . $tahun[1]) }}";
             var Total = [];
             var Total2 = [];
             var Bulan = [];

@@ -71,48 +71,48 @@ class AnggotaController extends Controller
                 return response()->json(['status' => false, 'message' => 'Sukses']);
             }
         } else {
-        try {
-            $last_id = '';
-            $mhs = new Mahasiswa;
-            $mhs->nim = $request->nim;
-            $mhs->name = $request->name;
-            $mhs->email = Str::lower($request->email);
-            $mhs->alamat = $request->alamat;
-            $mhs->tanggalLahir = date('Y-m-d', strtotime($request->tanggalLahir));
-            $mhs->noKtp = $request->noKtp;
-            $mhs->jk = $request->jk;
-            // jika user upload berkas
-            if ($request->hasFile('foto')) {
-                $file = $request->file('foto');
-                $extension = $file->getClientOriginalExtension();
-                $fileName = rand(11111, 99999) . '.' . $extension;
-                // upload ke folder
-                $file->move(public_path() . '/users/', $fileName);
-                $mhs->foto = $fileName;
+            try {
+                $last_id = '';
+                $mhs = new Mahasiswa;
+                $mhs->nim = $request->nim;
+                $mhs->name = $request->name;
+                $mhs->email = Str::lower($request->email);
+                $mhs->alamat = $request->alamat;
+                $mhs->tanggalLahir = date('Y-m-d', strtotime($request->tanggalLahir));
+                $mhs->noKtp = $request->noKtp;
+                $mhs->jk = $request->jk;
+                // jika user upload berkas
+                if ($request->hasFile('foto')) {
+                    $file = $request->file('foto');
+                    $extension = $file->getClientOriginalExtension();
+                    $fileName = rand(11111, 99999) . '.' . $extension;
+                    // upload ke folder
+                    $file->move(public_path() . '/users/', $fileName);
+                    $mhs->foto = $fileName;
+                }
+                $mhs->noTlpn = $request->noTlpn;
+                $simpan = $mhs->save();
+                $last_id = $mhs->id;
+                // user login
+                $user = new User;
+                $user->users_global = $last_id;
+                $user->name = $request->name;
+                $user->email = $request->email;
+                $user->username = $request->nim;
+                $user->password = bcrypt($request->nim);
+                $user->role = 'mahasiswa';
+                $user->save();
+                // anggota baru
+                $q = new AnggotaUkm;
+                $q->ukms_id = $ukms_id;
+                $q->jabatan = 'anggota_biasa';
+                $q->users_global = $last_id;
+                $q->users_id = auth()->user()->id;
+                $simpan = $q->save();
+                return response()->json(['status' => $simpan, 'message' => 'Sukses']);
+            } catch (\Exception $err) {
+                return response()->json(['status' => false, 'message' => $err->getMessage()]);
             }
-            $mhs->noTlpn = $request->noTlpn;
-            $simpan = $mhs->save();
-            $last_id = $mhs->id;
-            // user login
-            $user = new User;
-            $user->users_global = $last_id;
-            $user->name = $request->name;
-            $user->email = $request->email;
-            $user->username = $request->nim;
-            $user->password = bcrypt($request->nim);
-            $user->role = 'mahasiswa';
-            $user->save();
-            // anggota baru
-            $q = new AnggotaUkm;
-            $q->ukms_id = $ukms_id;
-            $q->jabatan = 'anggota_biasa';
-            $q->users_global = $last_id;
-            $q->users_id = auth()->user()->id;
-            $simpan = $q->save();
-            return response()->json(['status' => $simpan, 'message' => 'Sukses']);
-        } catch (\Exception $err) {
-            return response()->json(['status' => false, 'message' => $err->getMessage()]);
-        }
         }
     }
 

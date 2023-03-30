@@ -102,6 +102,21 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                <div class="form-group">
+                                    <select name="filter_tahun" id="filter_tahun" class="form-control ml-2">
+                                        <option value="" disabled selected>Pilih Tahun</option>
+                                        @php
+                                            $tahun = date('Y');
+                                        @endphp
+                                        @for ($i = 2022; $i <= $tahun; $i++)
+                                            <option value="{{ $i }}">
+                                                {{ $i }}</option>
+                                        @endfor
+                                    </select>
+                                </div>
+                                <div class="form-group mx-1">
+                                    <button type="button" class="btn btn-info" id="filter">FILTER</button>
+                                </div>
                             </div>
                         </div>
                         <div class="card-body">
@@ -227,11 +242,11 @@
     <!-- SELECT2 -->
     <script src="{{ asset('assets/plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
-        function get_total(tb, metode, bulan = '') {
+        function get_total(tb, metode, bulan = '', tahun = '') {
             var result = '';
             $.ajax({
                 type: "get",
-                url: "{{ url('total_keuangan') }}/" + tb + "/" + metode + "/" + bulan,
+                url: "{{ url('total_keuangan') }}/" + tb + "/" + metode + "/" + bulan + "/" + tahun,
                 async: false,
                 success: function(res) {
                     result = res;
@@ -284,10 +299,10 @@
 
         refresh_total();
 
-        function refresh_total(m = '') {
-            $('.small-box').eq(0).find('#rupiah').text(get_total('pemasukan', 'all', m));
-            $('.small-box').eq(1).find('#rupiah').text(get_total('pemasukan', 'cash', m));
-            $('.small-box').eq(2).find('#rupiah').text(get_total('pemasukan', 'transfers', m));
+        function refresh_total(m = '', y = '') {
+            $('.small-box').eq(0).find('#rupiah').text(get_total('pemasukan', 'all', m, y));
+            $('.small-box').eq(1).find('#rupiah').text(get_total('pemasukan', 'cash', m, y));
+            $('.small-box').eq(2).find('#rupiah').text(get_total('pemasukan', 'transfers', m, y));
         }
 
 
@@ -324,7 +339,10 @@
                     'url': "{{ route('json.pemasukan') }}",
                     'data': function(data) {
                         var f_bulan = $('#filter_bulan').val();
+                        var f_tahun = $('#filter_tahun').val();
                         data.searchByBulan = f_bulan;
+                        data.searchByTahun = f_tahun;
+                        data._token = '{{ csrf_token() }}';
                     }
                 },
                 columns: [{
@@ -419,10 +437,15 @@
             });
 
             // filter custom
-            $('#filter_bulan').change(function() {
-                var m = $(this).val();
+            $('#filter').click(function() {
+                var m = $('#filter_bulan').val();
+                var y = $('#filter_tahun').val();
+                if (m == null || y == null) {
+                    alert('form filter tidak boleh kosong!');
+                    return false;
+                }
                 table.draw();
-                refresh_total(m);
+                refresh_total(m, y);
             });
 
             // open modal tambah

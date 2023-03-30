@@ -44,7 +44,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header d-flex flex-row align-items-center">
-                            <h3 class="card-title"><i class="fa fa-2x fa-list" aria-hidden="true"></i></h3>
+                            <h3 class="card-title"><i class="fas fa-2x fa-link" aria-hidden="true"></i></h3>
                             @if (Session::get('jabatan') === 'bendahara')
                                 <button class="btn btn-danger ml-auto" id="tambah">Tambah</button>
                             @endif
@@ -53,51 +53,18 @@
                             <table class="table table-bordered table-hover">
                                 <thead>
                                     <tr>
-                                        <th>No Reff</th>
-                                        <th>Nama Akun</th>
+                                        <th>No</th>
+                                        <th>Dari Akun</th>
+                                        <th>Nominal</th>
+                                        <th>Akun Tujuan</th>
+                                        <th>Tanggal</th>
                                         <th>User Create</th>
                                         @if (Session::get('jabatan') == 'bendahara')
                                             <th>Opsi</th>
                                         @endif
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @php
-                                        use App\Akun;
-                                    @endphp
-                                    @foreach ($nama_reff as $no => $item)
-                                        <tr>
-                                            <td colspan="9"><strong>{{ $item }}</strong></td>
-                                        </tr>
-                                        @php
-                                            $data = Akun::with('users')
-                                                ->where('ukms_id', Session::get('ukms_id'))
-                                                ->where('nama_reff', $item)
-                                                ->orderBy('no_reff', 'asc')
-                                                ->get();
-                                        @endphp
-                                        @foreach ($data as $v)
-                                            @php
-                                                $no_reff = $no + 1 . '-' . $v->no_reff;
-                                            @endphp
-                                            <tr>
-                                                <td>{{ $no_reff }}</td>
-                                                <td>{{ $v->keterangan }}</td>
-                                                <td>{{ $v->users->name }}</td>
-                                                @if (Session::get('jabatan') == 'bendahara')
-                                                    <td>
-                                                        {!! '<a href="javascript:void(0)" data-id="' .
-                                                            $v->id .
-                                                            '" class="btn btn-success btn-sm mx-1" id="edit"><i class="fas fa-edit"></i></a>' !!}
-                                                        {!! '<a href="javascript:void(0)" data-id="' .
-                                                            $v->id .
-                                                            '" class="btn btn-danger btn-sm mx-1" id="hapus"><i class="fa fa-trash" aria-hidden="true"></i></a>' !!}
-                                                    </td>
-                                                @endif
-                                            </tr>
-                                        @endforeach
-                                    @endforeach
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
@@ -109,7 +76,7 @@
 
     <!-- Modal -->
     <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-        <div class="modal-dialog modal-md" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title"></h5>
@@ -122,42 +89,34 @@
                     <input type="hidden" name="id" id="id">
                     <div class="modal-body">
                         <div class="row">
-                            <div class="col-12 col-sm-3">
+                            <div class="col-12 col-sm-4">
                                 <div class="form-group">
-                                    <label for="">No Reff</label>
-                                    <input type="number" name="no_reff" id="no_reff" class="form-control">
-                                </div>
-                            </div>
-                            <div class="w-100"></div>
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label for="">Kategori</label>
-                                    <select name="nama_reff" id="nama_reff" class="form-control">
+                                    <label for="">Dari</label>
+                                    <select name="akun_dari" id="akun_dari" class="form-control">
                                         <option value="" selected disabled>Pilih</option>
-                                        <option value="Activa">Activa</option>
-                                        <option value="Kewajiban">Kewajiban</option>
-                                        <option value="Modal">Modal</option>
-                                        <option value="Pendapatan">Pendapatan</option>
-                                        <option value="Beban">Beban</option>
+                                        @foreach ($akun as $item)
+                                            <option value="{{ $item->id }}">{{ $item->keterangan }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-12">
+                            <div class="col-12 col-sm-4">
                                 <div class="form-group">
-                                    <label for="">Nama Akun</label>
-                                    <input type="text" name="keterangan" id="keterangan" class="form-control">
+                                    <label for="">Nominal (Rp)</label>
+                                    <input type="number" name="nominal" id="nominal" min="0" class="form-control">
                                 </div>
                             </div>
-                            {{-- <div class="col-12">
-                                <label for="">Saldo Awal</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text" id="basic-addon1">Rp</span>
-                                    </div>
-                                    <input type="text" class="form-control" placeholder="0" name="saldo_awal"
-                                        id="saldo_awal">
+                            <div class="col-12 col-sm-4">
+                                <div class="form-group">
+                                    <label for="">Tujuan</label>
+                                    <select name="akun_tujuan" id="akun_tujuan" class="form-control">
+                                        <option value="" selected disabled>Pilih</option>
+                                        @foreach ($akun as $item)
+                                            <option value="{{ $item->id }}">{{ $item->keterangan }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                            </div> --}}
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -189,67 +148,59 @@
         $(document).ready(function() {
             var role = "{{ auth()->user()->role }}";
             $.fn.modal.Constructor.prototype._enforceFocus = function() {};
-            // var table = $('table').DataTable({
-            //     processing: true,
-            //     serverSide: true,
-            //     responsive: true,
-            //     autoWidth: false,
-            //     ajax: "{{ route('json.akun') }}",
-            //     columns: [{
-            //             data: null,
-            //             render: function(data, type, row, meta) {
-            //                 return meta.row + meta.settings._iDisplayStart + 1;
-            //             },
-            //         },
-            //         {
-            //             data: 'no_reff',
-            //             name: 'no_reff'
-            //         },
-            //         {
-            //             data: 'nama_reff',
-            //             name: 'nama_reff'
-            //         },
-            //         {
-            //             data: 'keterangan',
-            //             name: 'keterangan'
-            //         },
-            //         {
-            //             data: 'saldo',
-            //             name: 'saldo'
-            //         },
-            //         {
-            //             data: 'debet',
-            //             name: 'debet'
-            //         },
-            //         {
-            //             data: 'kredit',
-            //             name: 'kredit'
-            //         },
-            //         {
-            //             data: 'users.name',
-            //             name: 'users.name'
-            //         },
-            //         {
-            //             data: 'action',
-            //             name: 'action',
-            //             orderable: false,
-            //             searchable: false
-            //         },
-            //     ],
-            //     order: [
-            //         [1, "desc"]
-            //     ],
-            //     columnDefs: [{
-            //         target: 3,
-            //         visible: false,
-            //     }, ],
-            // });
+            var table = $('table').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                autoWidth: false,
+                ajax: "{{ route('json.transfers') }}",
+                columns: [{
+                        data: null,
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        },
+                    },
+                    {
+                        data: 'akun_dari.keterangan',
+                        name: 'akun_dari.keterangan'
+                    },
+                    {
+                        data: 'nominal',
+                        name: 'nominal'
+                    },
+                    {
+                        data: 'akun_tujuan.keterangan',
+                        name: 'akun_tujuan.keterangan'
+                    },
+                    {
+                        data: 'tanggal',
+                        name: 'tanggal'
+                    },
+                    {
+                        data: 'users.name',
+                        name: 'users.name'
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    },
+                ],
+                order: [
+                    [1, "desc"]
+                ],
+                columnDefs: [{
+                    target: 3,
+                    visible: false,
+                }, ],
+            });
 
             // open modal tambah
             $('#tambah').click(function(e) {
                 e.preventDefault();
                 $('#modal').modal('show');
-                $('#modal').find('.modal-title').text('Form Tambah');
+                $('#modal').find('.modal-title').text('Form Tambah Transfers Akun');
             });
 
             // reset all input in form after clicking modal
@@ -273,11 +224,12 @@
             });
 
             // delete data
-            $('body').on("click", "#hapus", function(e) {
+            table.on("click", "#hapus", function(e) {
                 e.preventDefault();
                 var id = $(this).data('id');
                 Swal.fire({
-                    title: 'Yakin untuk menghapus akun ini ?',
+                    title: 'Lanjut Hapus ?',
+                    text: 'Nominal yang di transfers akan dikembalikan seperti semula',
                     showDenyButton: true,
                     showCancelButton: false,
                     showConfirmButton: true,
@@ -286,7 +238,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: "{{ route('delete.akun') }}",
+                            url: "{{ route('delete.transfers') }}",
                             type: "GET",
                             dataType: "JSON",
                             data: {
@@ -301,8 +253,7 @@
                                     //     showCancelButton: false,
                                     //     showConfirmButton: true
                                     // }).then(function() {
-                                    // table.ajax.reload();
-                                    window.location.href = "./akun";
+                                    table.ajax.reload();
                                     // });
                                 }
                             },
@@ -318,59 +269,18 @@
                 })
             });
 
-            // open modal edit
-            $('body').on("click", "#edit", function(e) {
-                e.preventDefault();
-                var id = $(this).data('id');
-                $('#modal #v_detail').removeClass('d-none');
-                $('#modal').modal('show');
-                $('#modal').find('.modal-title').text('Form Edit');
-                $('#modal form').show().find('#id').val(id);
-                if (role == "owner") {
-                    $('#modal form').find('#role').closest('.form-group').hide();
-                    // $('#modal form').find('#username').closest('.form-group').hide();
-                    // $('#modal form').find('#password').closest('.form-group').hide();
-                }
-                $.ajax({
-                    url: "{{ route('edit.akun') }}",
-                    type: "GET",
-                    dataType: "JSON",
-                    cache: false,
-                    data: {
-                        'id': id
-                    },
-                    success: function(data) {
-                        $('#modal form').find('#no_reff').val(data.no_reff);
-                        $('#modal form').find('#nama_reff').val(data.nama_reff).change();
-                        $('#modal form').find('#keterangan').val(data.keterangan);
-                        $('#modal form').find('#saldo_awal').val(data.saldo_awal);
-                    },
-                    error: function(response) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Opps!',
-                            text: 'server error!'
-                        });
-                        console.log(response);
-                    }
-
-                });
-            });
             // tambah data
             var validator = $("#modalForm").validate({
                 rules: {
-                    no_reff: {
+                    akun_dari: {
                         required: true,
                     },
-                    nama_reff: {
+                    nominal: {
                         required: true,
                     },
-                    keterangan: {
+                    akun_tujuan: {
                         required: true,
                     },
-                    // saldo_awal: {
-                    //     required: true,
-                    // },
                 },
                 errorElement: "div",
                 errorPlacement: function(error, element) {
@@ -387,7 +297,7 @@
                     var id = $(form).find('#id').val();
                     if (id == "") {
                         $.ajax({
-                            url: "{{ route('insert.akun') }}",
+                            url: "{{ route('insert.transfers') }}",
                             type: "POST",
                             dataType: "JSON",
                             cache: false,
@@ -403,8 +313,7 @@
                                         showConfirmButton: true
                                     }).then(function() {
                                         $('#modal').modal('hide');
-                                        // table.ajax.reload();
-                                        window.location.href = "./akun";
+                                        table.ajax.reload();
                                     });
                                 } else {
                                     Swal.fire({
@@ -413,8 +322,7 @@
                                         showCancelButton: false,
                                         showConfirmButton: true
                                     }).then(function() {
-                                        // table.ajax.reload();
-                                        window.location.href = "./akun";
+                                        table.ajax.reload();
                                     });
                                 }
                             },
@@ -429,7 +337,7 @@
                         });
                     } else {
                         $.ajax({
-                            url: "{{ route('update.akun') }}",
+                            url: "{{ route('update.transfers') }}",
                             type: "POST",
                             dataType: "JSON",
                             cache: false,
@@ -445,8 +353,7 @@
                                         showConfirmButton: true
                                     }).then(function() {
                                         $('#modal').modal('hide');
-                                        // table.ajax.reload();
-                                        window.location.href = "./akun";
+                                        table.ajax.reload();
                                     });
                                 } else {
                                     Swal.fire({
@@ -455,8 +362,7 @@
                                         showCancelButton: false,
                                         showConfirmButton: true
                                     }).then(function() {
-                                        // table.ajax.reload();
-                                        window.location.href = "./akun";
+                                        table.ajax.reload();
                                     });
                                 }
                             },

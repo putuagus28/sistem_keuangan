@@ -298,11 +298,18 @@
                         render: function(data, type, row, meta) {
                             var btn = '';
                             if (row.keterangan == 'jurnal umum') {
-                                btn = '<span class="p-2 bg-info">' + row.keterangan + '</span>';
+                                btn = '<span class="p-2 badge badge-pill badge-info">' + row
+                                    .keterangan + '</span>';
                             } else if (row.keterangan == 'pengeluaran') {
-                                btn = '<span class="p-2 bg-danger">' + row.keterangan + '</span>';
+                                btn = '<span class="p-2 badge badge-pill badge-danger">' + row
+                                    .keterangan + '</span>';
                             } else if (row.keterangan == 'pemasukan') {
-                                btn = '<span class="p-2 bg-success">' + row.keterangan + '</span>';
+                                btn = '<span class="p-2 badge badge-pill badge-success">' + row
+                                    .keterangan + '</span>';
+                            } else {
+                                btn = '<span class="p-2 badge badge-pill badge-secondary">' + row
+                                    .keterangan +
+                                    '</span>';
                             }
                             return btn;
                         },

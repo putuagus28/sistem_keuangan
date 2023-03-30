@@ -9,14 +9,12 @@ use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Session;
 
-class AkunController extends Controller
+class MutasiAkunController extends Controller
 {
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Akun::with('users')
-                ->where('ukms_id', Session::get('ukms_id'))
-                ->get();
+            $data = Akun::with('users')->get();
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
@@ -38,25 +36,18 @@ class AkunController extends Controller
                 ->make(true);
         }
         $data = [
-            'title' => 'Data Akun',
+            'title' => 'Data Mutasi Akun',
             'nama_reff' => ['Activa', 'Kewajiban', 'Modal', 'Pendapatan', 'Beban']
         ];
-
-        return view('akun.index', $data);
+        return view('akun.akun', $data);
     }
 
     public function insert(Request $request)
     {
         try {
             $q = new Akun;
-            $cek1 = $q->where(
-                [
-                    'no_reff' => $request->no_reff,
-                    'nama_reff' => $request->nama_reff,
-                    'ukms_id' => Session::get('ukms_id')
-                ]
-            );
-            $cek2 = $q->where(['nama_reff' => $request->nama_reff, 'ukms_id' => Session::get('ukms_id')]);
+            $cek1 = $q->where(['no_reff' => $request->no_reff]);
+            $cek2 = $q->where(['nama_reff' => $request->nama_reff]);
             if ($cek1->exists()) {
                 return response()->json(['status' => false, 'message' => 'No Reff sudah ada!']);
             } else if ($request->nama_reff == "Modal" && $cek2->exists()) {

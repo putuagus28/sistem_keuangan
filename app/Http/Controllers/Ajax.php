@@ -17,57 +17,102 @@ use Illuminate\Support\Facades\DB;
 
 class Ajax extends Controller
 {
-    public function total_keuangan($table, $metode = null, $b = null)
+    public function total_keuangan($table, $metode = null, $b = null, $y = null)
     {
-        $bulan = !empty($b) ? $b : date('m');
+        $bulan = !empty($b) ? $b : null;
+        $tahun = !empty($y) ? $y : null;
         if ($table == 'pembayaran') {
             if ($metode != 'all') {
-                $q = Pembayaran::where('ukms_id', Session::get('ukms_id'))
-                    ->where('metode', $metode)
-                    ->whereMonth('tanggal', $bulan)
-                    ->where('ukms_id', Session::get('ukms_id'))
-                    ->sum('nominal');
+                if ($b == null && $y == null) {
+                    $q = Pembayaran::where('ukms_id', Session::get('ukms_id'))
+                        ->where('metode', $metode)
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->sum('nominal');
+                } else {
+                    $q = Pembayaran::where('ukms_id', Session::get('ukms_id'))
+                        ->where('metode', $metode)
+                        ->whereMonth('tanggal', $bulan)
+                        ->whereYear('tanggal', $tahun)
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->sum('nominal');
+                }
             } else {
-                $q = Pembayaran::where('ukms_id', Session::get('ukms_id'))
-                    ->whereMonth('tanggal', $bulan)
-                    ->where('ukms_id', Session::get('ukms_id'))
-                    ->sum('nominal');
+                if ($b == null && $y == null) {
+                    $q = Pembayaran::where('ukms_id', Session::get('ukms_id'))
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->sum('nominal');
+                } else {
+                    $q = Pembayaran::where('ukms_id', Session::get('ukms_id'))
+                        ->whereMonth('tanggal', $bulan)
+                        ->whereYear('tanggal', $tahun)
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->sum('nominal');
+                }
             }
         } else if ($table == 'pemasukan') {
             if ($metode != 'all') {
-                $q = Pemasukan::where('ukms_id', Session::get('ukms_id'))
-                    ->where('metode', $metode)
-                    ->whereMonth('tanggal', $bulan)
-                    ->where('ukms_id', Session::get('ukms_id'))
-                    ->sum('nominal');
+                if ($b == null && $y == null) {
+                    $q = Pemasukan::where('ukms_id', Session::get('ukms_id'))
+                        ->where('metode', $metode)
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->sum('nominal');
+                } else {
+                    $q = Pemasukan::where('ukms_id', Session::get('ukms_id'))
+                        ->where('metode', $metode)
+                        ->whereMonth('tanggal', $bulan)
+                        ->whereYear('tanggal', $tahun)
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->sum('nominal');
+                }
             } else {
-                $q = Pemasukan::where('ukms_id', Session::get('ukms_id'))
-                    ->whereMonth('tanggal', $bulan)
-                    ->where('ukms_id', Session::get('ukms_id'))
-                    ->sum('nominal');
+                if ($b == null && $y == null) {
+                    $q = Pemasukan::where('ukms_id', Session::get('ukms_id'))
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->sum('nominal');
+                } else {
+                    $q = Pemasukan::where('ukms_id', Session::get('ukms_id'))
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->whereMonth('tanggal', $bulan)
+                        ->whereYear('tanggal', $tahun)
+                        ->sum('nominal');
+                }
             }
-            $q= $q/2;
+            $q = $q / 2;
         } else if ($table == 'pengeluaran') {
             if ($metode != 'all') {
-                $q = Pengeluaran::where('ukms_id', Session::get('ukms_id'))
-                    ->where('metode', $metode)
-                    ->whereMonth('tanggal', $bulan)
-                    ->where('ukms_id', Session::get('ukms_id'))
-                    ->sum('nominal');
+                if ($b == null && $y == null) {
+                    $q = Pengeluaran::where('ukms_id', Session::get('ukms_id'))
+                        ->where('metode', $metode)
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->sum('nominal');
+                } else {
+                    $q = Pengeluaran::where('ukms_id', Session::get('ukms_id'))
+                        ->where('metode', $metode)
+                        ->whereMonth('tanggal', $bulan)
+                        ->whereYear('tanggal', $tahun)
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->sum('nominal');
+                }
             } else {
-                $q = Pengeluaran::where('ukms_id', Session::get('ukms_id'))
-                    ->whereMonth('tanggal', $bulan)
-                    ->where('ukms_id', Session::get('ukms_id'))
-                    ->sum('nominal');
+                if ($b == null && $y == null) {
+                    $q = Pengeluaran::where('ukms_id', Session::get('ukms_id'))
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->sum('nominal');
+                } else {
+                    $q = Pengeluaran::where('ukms_id', Session::get('ukms_id'))
+                        ->where('ukms_id', Session::get('ukms_id'))
+                        ->whereMonth('tanggal', $bulan)
+                        ->whereYear('tanggal', $tahun)
+                        ->sum('nominal');
+                }
             }
-            $q= $q/2;
+            $q = $q / 2;
         } else {
             $q = [];
         }
 
         return number_format($q, 0, ',', '.');
     }
-
 
     function hari($date)
     {

@@ -20,19 +20,20 @@ class PemasukanController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            if (!empty($request->searchByBulan)) {
+            if (!empty($request->searchByBulan) && !empty($request->searchByTahun)) {
                 $data = Pemasukan::select('*')
                     ->addSelect(DB::raw('MONTH(tanggal) as bulan', '*'))
                     ->with('ukm', 'akun', 'users.mhs')
                     ->where('ukms_id', Session::get('ukms_id'))
                     ->whereMonth('tanggal', $request->searchByBulan)
+                    ->whereYear('tanggal', $request->searchByTahun)
                     ->get();
             } else {
                 $data = Pemasukan::select('*')
                     ->addSelect(DB::raw('MONTH(tanggal) as bulan', '*'))
                     ->with('ukm', 'akun', 'users.mhs')
                     ->where('ukms_id', Session::get('ukms_id'))
-                    ->whereMonth('tanggal', date('m'))
+                    // ->whereMonth('tanggal', date('m'))
                     ->get();
             }
             return Datatables::of($data)
@@ -135,7 +136,9 @@ class PemasukanController extends Controller
                             $up->{$jenis_saldo} += $saldo;
                             $up->save();
                         } else {
-                            // $m = Akun::where('nama_reff', 'Modal')->first();
+                            // $m = Akun::where('nama_reff', 'Modal')
+                            // ->where('ukms_id',Session::get('ukms_id'))
+                            // ->first();
                             // $modal = Akun::find($m->id);
                             // // kalkulasi saldo akun
                             // if ($jenis_saldo == "debet") {
@@ -175,7 +178,9 @@ class PemasukanController extends Controller
                 }
 
                 // mengurangi modal 
-                $m = Akun::where('nama_reff', 'Modal')->first();
+                $m = Akun::where('nama_reff', 'Modal')
+                    ->where('ukms_id', Session::get('ukms_id'))
+                    ->first();
                 $modal = Akun::find($m->id);
                 $modal->saldo_awal += $total_modal / 2;
                 $modal->save();
@@ -257,7 +262,9 @@ class PemasukanController extends Controller
         }
 
         // select akun modal
-        $m = Akun::where('nama_reff', 'Modal')->first();
+        $m = Akun::where('nama_reff', 'Modal')
+            ->where('ukms_id', Session::get('ukms_id'))
+            ->first();
         // update saldo awal modal
         $modal = Akun::find($m->id);
         $modal->saldo_awal -= $total / 2;

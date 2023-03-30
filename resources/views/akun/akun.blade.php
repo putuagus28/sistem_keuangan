@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ asset('assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
 @endsection
+
 @section('content')
     <!-- Content Header (Page header) -->
     <div class="content-header">
@@ -45,58 +46,23 @@
                     <div class="card">
                         <div class="card-header d-flex flex-row align-items-center">
                             <h3 class="card-title"><i class="fa fa-2x fa-list" aria-hidden="true"></i></h3>
-                            @if (Session::get('jabatan') === 'bendahara')
-                                <button class="btn btn-danger ml-auto" id="tambah">Tambah</button>
-                            @endif
+                            {{-- <button class="btn btn-danger ml-auto" id="tambah">Tambah</button> --}}
                         </div>
                         <div class="card-body">
                             <table class="table table-bordered table-hover">
                                 <thead>
                                     <tr>
                                         <th>No Reff</th>
+                                        <th>Kategori</th>
                                         <th>Nama Akun</th>
-                                        <th>User Create</th>
-                                        @if (Session::get('jabatan') == 'bendahara')
-                                            <th>Opsi</th>
-                                        @endif
+                                        <th>Saldo Awal</th>
+                                        <th>Debet</th>
+                                        <th>Kredit</th>
+                                        {{-- <th>User Create</th> --}}
+                                        {{-- <th>Opsi</th> --}}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @php
-                                        use App\Akun;
-                                    @endphp
-                                    @foreach ($nama_reff as $no => $item)
-                                        <tr>
-                                            <td colspan="9"><strong>{{ $item }}</strong></td>
-                                        </tr>
-                                        @php
-                                            $data = Akun::with('users')
-                                                ->where('ukms_id', Session::get('ukms_id'))
-                                                ->where('nama_reff', $item)
-                                                ->orderBy('no_reff', 'asc')
-                                                ->get();
-                                        @endphp
-                                        @foreach ($data as $v)
-                                            @php
-                                                $no_reff = $no + 1 . '-' . $v->no_reff;
-                                            @endphp
-                                            <tr>
-                                                <td>{{ $no_reff }}</td>
-                                                <td>{{ $v->keterangan }}</td>
-                                                <td>{{ $v->users->name }}</td>
-                                                @if (Session::get('jabatan') == 'bendahara')
-                                                    <td>
-                                                        {!! '<a href="javascript:void(0)" data-id="' .
-                                                            $v->id .
-                                                            '" class="btn btn-success btn-sm mx-1" id="edit"><i class="fas fa-edit"></i></a>' !!}
-                                                        {!! '<a href="javascript:void(0)" data-id="' .
-                                                            $v->id .
-                                                            '" class="btn btn-danger btn-sm mx-1" id="hapus"><i class="fa fa-trash" aria-hidden="true"></i></a>' !!}
-                                                    </td>
-                                                @endif
-                                            </tr>
-                                        @endforeach
-                                    @endforeach
                                 </tbody>
                             </table>
                         </div>
@@ -108,65 +74,6 @@
     </section>
 
     <!-- Modal -->
-    <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-        <div class="modal-dialog modal-md" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"></h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form action="" id="modalForm">
-                    @csrf
-                    <input type="hidden" name="id" id="id">
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-12 col-sm-3">
-                                <div class="form-group">
-                                    <label for="">No Reff</label>
-                                    <input type="number" name="no_reff" id="no_reff" class="form-control">
-                                </div>
-                            </div>
-                            <div class="w-100"></div>
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label for="">Kategori</label>
-                                    <select name="nama_reff" id="nama_reff" class="form-control">
-                                        <option value="" selected disabled>Pilih</option>
-                                        <option value="Activa">Activa</option>
-                                        <option value="Kewajiban">Kewajiban</option>
-                                        <option value="Modal">Modal</option>
-                                        <option value="Pendapatan">Pendapatan</option>
-                                        <option value="Beban">Beban</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label for="">Nama Akun</label>
-                                    <input type="text" name="keterangan" id="keterangan" class="form-control">
-                                </div>
-                            </div>
-                            {{-- <div class="col-12">
-                                <label for="">Saldo Awal</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text" id="basic-addon1">Rp</span>
-                                    </div>
-                                    <input type="text" class="form-control" placeholder="0" name="saldo_awal"
-                                        id="saldo_awal">
-                                </div>
-                            </div> --}}
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Simpan</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
 @endsection
 
@@ -189,61 +96,78 @@
         $(document).ready(function() {
             var role = "{{ auth()->user()->role }}";
             $.fn.modal.Constructor.prototype._enforceFocus = function() {};
-            // var table = $('table').DataTable({
-            //     processing: true,
-            //     serverSide: true,
-            //     responsive: true,
-            //     autoWidth: false,
-            //     ajax: "{{ route('json.akun') }}",
-            //     columns: [{
-            //             data: null,
-            //             render: function(data, type, row, meta) {
-            //                 return meta.row + meta.settings._iDisplayStart + 1;
-            //             },
-            //         },
-            //         {
-            //             data: 'no_reff',
-            //             name: 'no_reff'
-            //         },
-            //         {
-            //             data: 'nama_reff',
-            //             name: 'nama_reff'
-            //         },
-            //         {
-            //             data: 'keterangan',
-            //             name: 'keterangan'
-            //         },
-            //         {
-            //             data: 'saldo',
-            //             name: 'saldo'
-            //         },
-            //         {
-            //             data: 'debet',
-            //             name: 'debet'
-            //         },
-            //         {
-            //             data: 'kredit',
-            //             name: 'kredit'
-            //         },
-            //         {
-            //             data: 'users.name',
-            //             name: 'users.name'
-            //         },
-            //         {
-            //             data: 'action',
-            //             name: 'action',
-            //             orderable: false,
-            //             searchable: false
-            //         },
-            //     ],
-            //     order: [
-            //         [1, "desc"]
-            //     ],
-            //     columnDefs: [{
-            //         target: 3,
-            //         visible: false,
-            //     }, ],
-            // });
+            var table = $('table').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                autoWidth: false,
+                ajax: "{{ route('json.akun') }}",
+                columns: [
+                    // {
+                    //     data: null,
+                    //     render: function(data, type, row, meta) {
+                    //         return meta.row + meta.settings._iDisplayStart + 1;
+                    //     },
+                    // },
+                    {
+                        data: 'no_reff',
+                        render: function(data, type, row, meta) {
+                            var no = row.nama_reff;
+                            var nama = row.nama_reff;
+                            var akun = ['Activa', 'Kewajiban', 'Modal', 'Pendapatan', 'Beban'];
+                            if (nama == akun[0]) {
+                                no = 1;
+                            } else if (nama == akun[1]) {
+                                no = 2;
+                            } else if (nama == akun[2]) {
+                                no = 3;
+                            } else if (nama == akun[3]) {
+                                no = 4;
+                            } else if (nama == akun[4]) {
+                                no = 4;
+                            }
+                            return no + '-' + row.no_reff;
+                        },
+                    },
+                    {
+                        data: 'nama_reff',
+                        name: 'nama_reff'
+                    },
+                    {
+                        data: 'keterangan',
+                        name: 'keterangan'
+                    },
+                    {
+                        data: 'saldo',
+                        name: 'saldo'
+                    },
+                    {
+                        data: 'debet',
+                        name: 'debet'
+                    },
+                    {
+                        data: 'kredit',
+                        name: 'kredit'
+                    },
+                    // {
+                    //     data: 'users.name',
+                    //     name: 'users.name'
+                    // },
+                    // {
+                    //     data: 'action',
+                    //     name: 'action',
+                    //     orderable: false,
+                    //     searchable: false
+                    // },
+                ],
+                order: [
+                    [1, "asc"]
+                ],
+                columnDefs: [{
+                    target: 3,
+                    visible: false,
+                }, ],
+            });
 
             // open modal tambah
             $('#tambah').click(function(e) {
@@ -273,11 +197,11 @@
             });
 
             // delete data
-            $('body').on("click", "#hapus", function(e) {
+            table.on("click", "#hapus", function(e) {
                 e.preventDefault();
                 var id = $(this).data('id');
                 Swal.fire({
-                    title: 'Yakin untuk menghapus akun ini ?',
+                    title: 'Yakin untuk menghapus anggota ini ?',
                     showDenyButton: true,
                     showCancelButton: false,
                     showConfirmButton: true,
@@ -301,8 +225,7 @@
                                     //     showCancelButton: false,
                                     //     showConfirmButton: true
                                     // }).then(function() {
-                                    // table.ajax.reload();
-                                    window.location.href = "./akun";
+                                    table.ajax.reload();
                                     // });
                                 }
                             },
@@ -319,7 +242,7 @@
             });
 
             // open modal edit
-            $('body').on("click", "#edit", function(e) {
+            table.on("click", "#edit", function(e) {
                 e.preventDefault();
                 var id = $(this).data('id');
                 $('#modal #v_detail').removeClass('d-none');
@@ -403,8 +326,7 @@
                                         showConfirmButton: true
                                     }).then(function() {
                                         $('#modal').modal('hide');
-                                        // table.ajax.reload();
-                                        window.location.href = "./akun";
+                                        table.ajax.reload();
                                     });
                                 } else {
                                     Swal.fire({
@@ -413,8 +335,7 @@
                                         showCancelButton: false,
                                         showConfirmButton: true
                                     }).then(function() {
-                                        // table.ajax.reload();
-                                        window.location.href = "./akun";
+                                        table.ajax.reload();
                                     });
                                 }
                             },
@@ -445,8 +366,7 @@
                                         showConfirmButton: true
                                     }).then(function() {
                                         $('#modal').modal('hide');
-                                        // table.ajax.reload();
-                                        window.location.href = "./akun";
+                                        table.ajax.reload();
                                     });
                                 } else {
                                     Swal.fire({
@@ -455,8 +375,7 @@
                                         showCancelButton: false,
                                         showConfirmButton: true
                                     }).then(function() {
-                                        // table.ajax.reload();
-                                        window.location.href = "./akun";
+                                        table.ajax.reload();
                                     });
                                 }
                             },
